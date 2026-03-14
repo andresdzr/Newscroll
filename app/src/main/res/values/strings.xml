@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Newscroll</string>
+    <string name="app_name" translatable="false">Newscroll</string>
     <string name="read_full_article">Read Full Article</string>
     <string name="user_preferences">User Preferences</string>
     <string name="open_menu_description">Open Menu</string>

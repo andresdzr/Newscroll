@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,11 +19,17 @@ import coil.compose.AsyncImage
 import es.uc3m.android.newscroll.R
 import kotlinx.coroutines.launch
 
+enum class Screen {
+    FEED,
+    SAVED,
+    SETTINGS
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppShell() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var currentScreen by remember { mutableStateOf(Screen.FEED) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -52,18 +59,34 @@ fun NewsAppShell() {
 
                 // 3. The Menu Items with Icons
                 NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    label = { Text("Feed") },
+                    selected = currentScreen == Screen.FEED,
+                    onClick = {
+                        currentScreen = Screen.FEED
+                        scope.launch { drawerState.close() }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                )
+
+                NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                     label = { Text(text = stringResource(id = R.string.user_preferences)) },
-                    selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
+                    selected = currentScreen == Screen.SETTINGS,
+                    onClick = {
+                        currentScreen = Screen.SETTINGS
+                        scope.launch { drawerState.close() }
+                    },
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
 
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
                     label = { Text(text = stringResource(id = R.string.saved_articles)) },
-                    selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
+                    selected = currentScreen == Screen.SAVED,
+                    onClick = {
+                        currentScreen = Screen.SAVED
+                        scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
 
@@ -99,7 +122,11 @@ fun NewsAppShell() {
                 )
             }
         ) { paddingValues ->
-            NewsFeedScreen(modifier = Modifier.padding(paddingValues))
+            when (currentScreen) {
+                Screen.FEED -> NewsFeedScreen(modifier = Modifier.padding(paddingValues))
+                Screen.SAVED -> SavedScreen(modifier = Modifier.padding(paddingValues))
+                Screen.SETTINGS -> SettingsScreen(modifier = Modifier.padding(paddingValues))
+            }
         }
     }
 }

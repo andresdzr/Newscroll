@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="read_full_article">Leer artículo completo</string>
+    <string name="user_preferences">Preferencias de usuario</string>
+    <string name="open_menu_description">Abrir menú</string>
+    <string name="close_menu_description">Cerrar menú</string>
+    <string name="saved_articles">Artículos guardados</string>
+    <string name="logout">Cerrar sesión</string>
+</resources>
