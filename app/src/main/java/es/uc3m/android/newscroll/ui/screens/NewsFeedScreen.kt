@@ -7,10 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import es.uc3m.android.newscroll.model.NewsArticle
 import es.uc3m.android.newscroll.ui.components.NewsItem
+import es.uc3m.android.newscroll.viewmodel.NewsViewModel
+
 
 @Composable
-fun NewsFeedScreen(modifier: Modifier = Modifier) {
+fun NewsFeedScreen(modifier: Modifier, viewModel: NewsViewModel) {
     // Dummy data, later this will take a list created dynamically
+    val savedIds = viewModel.savedArticles.value
     val dummyArticles = listOf(
         NewsArticle(
             id = "1",
@@ -47,6 +50,13 @@ fun NewsFeedScreen(modifier: Modifier = Modifier) {
         val currentArticle = dummyArticles[page]
 
         // Display it
-        NewsItem(article = currentArticle)
+        NewsItem(
+            modifier = Modifier,
+            article = currentArticle,
+            isSaved = currentArticle.id in savedIds,
+            onToggleSaved = {
+                viewModel.toggleSaved(currentArticle.id)
+            }
+        )
     }
 }

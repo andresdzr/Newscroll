@@ -45,7 +45,12 @@ fun SavedScreen(modifier: Modifier = Modifier) {
 
         LazyColumn {
             items(savedArticles) { article ->
-                NewsItem(article = article)
+                NewsItem(
+                    modifier = Modifier,
+                    article = article,
+                    isSaved = true,
+                    onToggleSaved = {}
+                )
             }
         }
     }

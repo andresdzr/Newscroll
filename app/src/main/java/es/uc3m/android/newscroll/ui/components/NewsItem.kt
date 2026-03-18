@@ -1,6 +1,7 @@
 package es.uc3m.android.newscroll.ui.components
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -19,9 +20,21 @@ import coil.compose.AsyncImage
 import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.model.NewsArticle
 import androidx.core.net.toUri
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
-fun NewsItem(article: NewsArticle, modifier: Modifier = Modifier) {
+fun NewsItem(
+    modifier: Modifier,
+    article: NewsArticle,
+    isSaved: Boolean,
+    onToggleSaved: () -> Unit
+) {
+
     val context = LocalContext.current
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -30,11 +43,11 @@ fun NewsItem(article: NewsArticle, modifier: Modifier = Modifier) {
         AsyncImage(
             model = article.imageUrl,
             contentDescription = article.title,
-            contentScale = ContentScale.Crop, // Crop the image to fill the whole screen
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
 
-        // Dark gradient overlay at the bottom to make sure text is readable
+        // Gradient overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -46,36 +59,75 @@ fun NewsItem(article: NewsArticle, modifier: Modifier = Modifier) {
                 )
         )
 
-        // Title, description and full article link
+        // Content
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(16.dp)
         ) {
+
             Text(
-                text = article.title,
+                text = article.title ?: "",
                 style = MaterialTheme.typography.headlineLarge,
                 color = Color.White
             )
 
-            Spacer(modifier = Modifier.height(8.dp)) // Add small vertical margin
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = article.description,
+                text = article.description ?: "",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.LightGray
             )
 
-            Spacer(modifier = Modifier.height(16.dp)) // Add small vertical margin
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    // Open the full article on the browser
-                    val intent = Intent(Intent.ACTION_VIEW, article.articleUrl.toUri())
-                    context.startActivity(intent)
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = stringResource(R.string.read_full_article))
+
+                // Botón leer artículo
+                Button(
+                    onClick = {
+                        val url = article.articleUrl
+
+                        if (!url.isNullOrBlank()) {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+
+                                if (intent.resolveActivity(context.packageManager) != null) {
+                                    context.startActivity(intent)
+                                }
+                            } catch (e: Exception) {
+                                Log.e("NewsItem", "Invalid URL: $url", e)
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(R.string.read_full_article))
+                }
+
+                // Botón corazón
+                IconButton(
+                    onClick = onToggleSaved,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isSaved)
+                            Icons.Filled.Favorite
+                        else
+                            Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Save",
+                        tint = if (isSaved) Color.Red else Color.LightGray
+                    )
+                }
             }
         }
     }
