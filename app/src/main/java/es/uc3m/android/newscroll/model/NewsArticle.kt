@@ -12,7 +12,5 @@ data class NewsArticle(
     val category: String? = null,      // filter
     val country: String? = null,      // location
     val latitude: Double? = null,     // for local
-    val longitude: Double? = null,     // for local
-
-    val isSaved: Boolean = false
+    val longitude: Double? = null,     // for loca
 )

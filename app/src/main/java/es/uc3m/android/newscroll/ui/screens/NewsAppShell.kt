@@ -21,12 +21,16 @@ import es.uc3m.android.newscroll.R
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.AccountCircle
 
 import androidx.navigation.compose.*
 import androidx.navigation.NavHostController
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
+import es.uc3m.android.newscroll.viewmodel.UserViewModel
+import androidx.compose.runtime.getValue
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppShell() {
@@ -37,6 +41,10 @@ fun NewsAppShell() {
     val navController = rememberNavController()
     val settingsViewModel: SettingsViewModel = viewModel()
     val newsViewModel: NewsViewModel = viewModel()
+    val userViewModel: UserViewModel = viewModel()
+
+    val username by userViewModel.username
+    val isLoggedIn by userViewModel.isLoggedIn
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -54,7 +62,7 @@ fun NewsAppShell() {
                 }
 
                 Text(
-                    text = "Jane Doe",
+                    text = username,
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
@@ -93,13 +101,37 @@ fun NewsAppShell() {
                     }
                 )
 
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
+                    label = { Text("Profile Settings") },
+                    selected = false,
+                    onClick = {
+                        navController.navigate("profile")
+                        scope.launch { drawerState.close() }
+                    }
+                )
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
-                    label = { Text(stringResource(id = R.string.logout)) },
+                    icon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = null
+                        )
+                    },
+                    label = {
+                        Text(if (isLoggedIn) "Logout" else "Login")
+                    },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } }
+                    onClick = {
+                        if (isLoggedIn) {
+                            userViewModel.logout()
+                        } else {
+                            navController.navigate("profile")
+                        }
+                        scope.launch { drawerState.close() }
+                    }
                 )
             }
         }
@@ -136,11 +168,15 @@ fun NewsAppShell() {
                 }
 
                 composable("saved") {
-                    SavedScreen()
+                    SavedScreen(newsViewModel)
                 }
 
                 composable("settings") {
                     SettingsScreen(settingsViewModel)
+                }
+
+                composable("profile") {
+                    ProfileSettingsScreen(userViewModel)
                 }
             }
         }
