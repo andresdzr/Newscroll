@@ -6,6 +6,13 @@
     <string name="close_menu_description">Cerrar menú</string>
     <string name="saved_articles">Artículos guardados</string>
     <string name="logout">Cerrar sesión</string>
+    <string name="login">Iniciar Sesión</string>
+    <string name="username">Nombre de Usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="profile">Perfil</string>
+    <string name="profile_settings">Ajustes de Usuario</string>
+    <string name="filters">Filtros</string>
+    <string name="location">Localización</string>
     <string name="no_saved_articles">Ningún artículo guardado todavía</string>
     <string name="remove_saved">Eliminar</string>
 </resources>

@@ -9,7 +9,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import es.uc3m.android.newscroll.viewmodel.LocationMode
 
@@ -57,7 +59,7 @@ fun FiltersSection(viewModel: SettingsViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Filters",
+                text = stringResource(id = R.string.filters),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -106,7 +108,7 @@ fun LocationSection(viewModel: SettingsViewModel) {
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Location", style = MaterialTheme.typography.titleMedium)
+            Text(text = stringResource(id = R.string.location), style = MaterialTheme.typography.titleMedium)
 
             Icon(
                 imageVector = if (expanded)

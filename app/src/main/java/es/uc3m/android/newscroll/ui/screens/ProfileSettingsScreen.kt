@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 
 @Composable
@@ -33,7 +35,7 @@ fun LoginView(userViewModel: UserViewModel) {
     ) {
 
         Text(
-            text = "Login",
+            text = stringResource(id = R.string.login),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -42,7 +44,7 @@ fun LoginView(userViewModel: UserViewModel) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Username") },
+            label = { Text(text = stringResource(id = R.string.username)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -51,7 +53,7 @@ fun LoginView(userViewModel: UserViewModel) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(text = stringResource(id = R.string.password)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -66,7 +68,7 @@ fun LoginView(userViewModel: UserViewModel) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Login")
+            Text(text = stringResource(id = R.string.login))
         }
     }
 }
@@ -83,7 +85,7 @@ fun ProfileView(userViewModel: UserViewModel) {
     ) {
 
         Text(
-            text = "Profile",
+            text = stringResource(id = R.string.profile),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -99,7 +101,7 @@ fun ProfileView(userViewModel: UserViewModel) {
         Button(
             onClick = { userViewModel.logout() }
         ) {
-            Text("Logout")
+            Text(text = stringResource(id = R.string.logout))
         }
     }
 }

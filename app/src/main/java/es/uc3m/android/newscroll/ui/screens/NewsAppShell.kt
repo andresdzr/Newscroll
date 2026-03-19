@@ -106,7 +106,7 @@ fun NewsAppShell() {
 
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
-                    label = { Text("Profile Settings") },
+                    label = { Text(stringResource(id = R.string.profile_settings)) },
                     selected = false,
                     onClick = { navigateToMenuScreen("profile") }
                 )
@@ -121,7 +121,8 @@ fun NewsAppShell() {
                         )
                     },
                     label = {
-                        Text(if (isLoggedIn) "Logout" else "Login")
+                        Text(if (isLoggedIn) stringResource(id = R.string.logout)
+                        else stringResource(id = R.string.login))
                     },
                     selected = false,
                     onClick = {
