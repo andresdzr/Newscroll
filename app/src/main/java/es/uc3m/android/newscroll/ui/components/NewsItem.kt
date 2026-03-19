@@ -67,7 +67,7 @@ fun NewsItem(
         ) {
 
             Text(
-                text = article.title ?: "",
+                text = article.title,
                 style = MaterialTheme.typography.headlineLarge,
                 color = Color.White
             )
@@ -75,7 +75,7 @@ fun NewsItem(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = article.description ?: "",
+                text = article.description,
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.LightGray
             )
@@ -93,18 +93,15 @@ fun NewsItem(
                     onClick = {
                         val url = article.articleUrl
 
-                        if (!url.isNullOrBlank()) {
+                        if (url.isNotBlank()) {
                             try {
                                 val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-
-                                if (intent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(intent)
-                                }
+                                context.startActivity(intent)
                             } catch (e: Exception) {
-                                Log.e("NewsItem", "Invalid URL: $url", e)
+                                Log.e("NewsApp", "Cannot open URL: $url", e)
                             }
                         }
-                    }
+                    },
                 ) {
                     Text(text = stringResource(R.string.read_full_article))
                 }

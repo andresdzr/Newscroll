@@ -41,7 +41,7 @@ class SettingsViewModel : ViewModel() {
     private val _locationMode = mutableStateOf<LocationMode>(LocationMode.GLOBAL)
     val locationMode: State<LocationMode> = _locationMode
 
-    private val _radiusKm = mutableStateOf<Float>(25f)
+    private val _radiusKm = mutableFloatStateOf(25f)
     val radiusKm: State<Float> = _radiusKm
 
     fun setLocationMode(mode: LocationMode) {
@@ -51,8 +51,8 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun setRadius(radius: Float) {
-        if (_radiusKm.value != radius) {
-            _radiusKm.value = radius
+        if (_radiusKm.floatValue != radius) {
+            _radiusKm.floatValue = radius
         }
     }
 }

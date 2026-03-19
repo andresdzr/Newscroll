@@ -61,7 +61,7 @@ fun LoginView(userViewModel: UserViewModel) {
             onClick = {
                 // Login simple (sin validación)
                 userViewModel.login(
-                    if (username.isNotBlank()) username else "User"
+                    username.ifBlank { "User" }
                 )
             },
             modifier = Modifier.fillMaxWidth()

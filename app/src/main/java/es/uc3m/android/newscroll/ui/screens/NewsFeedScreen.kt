@@ -5,7 +5,6 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import es.uc3m.android.newscroll.model.NewsArticle
 import es.uc3m.android.newscroll.ui.components.NewsItem
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.data.NewsRepository

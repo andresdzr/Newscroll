@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import es.uc3m.android.newscroll.viewmodel.LocationMode
-import com.google.accompanist.flowlayout.FlowRow
 
 val filterOptions = listOf(
     "Technology, ML & AI",

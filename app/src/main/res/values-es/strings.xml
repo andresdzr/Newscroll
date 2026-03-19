@@ -6,4 +6,6 @@
     <string name="close_menu_description">Cerrar menú</string>
     <string name="saved_articles">Artículos guardados</string>
     <string name="logout">Cerrar sesión</string>
+    <string name="no_saved_articles">Ningún artículo guardado todavía</string>
+    <string name="remove_saved">Eliminar</string>
 </resources>

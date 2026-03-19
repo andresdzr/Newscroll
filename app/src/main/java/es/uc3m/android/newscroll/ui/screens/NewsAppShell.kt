@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.AccountCircle
 
 import androidx.navigation.compose.*
-import androidx.navigation.NavHostController
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
@@ -39,6 +38,19 @@ fun NewsAppShell() {
     val scope = rememberCoroutineScope()
 
     val navController = rememberNavController()
+
+    // Helper to save state when switching screens
+    val navigateToMenuScreen: (String) -> Unit = { route ->
+        navController.navigate(route) {
+            popUpTo("feed") {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+        scope.launch { drawerState.close() }
+    }
+
     val settingsViewModel: SettingsViewModel = viewModel()
     val newsViewModel: NewsViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
@@ -74,10 +86,7 @@ fun NewsAppShell() {
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text("Feed") },
                     selected = false,
-                    onClick = {
-                        navController.navigate("feed")
-                        scope.launch { drawerState.close() }
-                    }
+                    onClick = { navigateToMenuScreen("feed") }
                 )
 
                 // Settings
@@ -85,30 +94,21 @@ fun NewsAppShell() {
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                     label = { Text(stringResource(id = R.string.user_preferences)) },
                     selected = false,
-                    onClick = {
-                        navController.navigate("settings")
-                        scope.launch { drawerState.close() }
-                    }
+                    onClick = { navigateToMenuScreen("settings") }
                 )
                 // Saved
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
                     label = { Text(stringResource(id = R.string.saved_articles)) },
                     selected = false,
-                    onClick = {
-                        navController.navigate("saved")
-                        scope.launch { drawerState.close() }
-                    }
+                    onClick = { navigateToMenuScreen("saved") }
                 )
 
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
                     label = { Text("Profile Settings") },
                     selected = false,
-                    onClick = {
-                        navController.navigate("profile")
-                        scope.launch { drawerState.close() }
-                    }
+                    onClick = { navigateToMenuScreen("profile") }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))

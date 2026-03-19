@@ -6,4 +6,6 @@
     <string name="close_menu_description">Close Menu</string>
     <string name="saved_articles">Saved Articles</string>
     <string name="logout">Log Out</string>
+    <string name="no_saved_articles">No saved articles yet</string>
+    <string name="remove_saved">Remove</string>
 </resources>

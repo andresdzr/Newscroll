@@ -9,8 +9,8 @@ data class NewsArticle(
     val description: String,    // A short summary
     val imageUrl: String,       // The link to the header image
     val articleUrl: String,      // The link to the full news article on the web
-    val category: String? = null,      // filter
-    val country: String? = null,      // location
-    val latitude: Double? = null,     // for local
-    val longitude: Double? = null,     // for loca
+    val category: String? = null,      // Filter
+    val country: String? = null,      // Location
+    val latitude: Double? = null,     // For local filter
+    val longitude: Double? = null,     // For local filter
 )
