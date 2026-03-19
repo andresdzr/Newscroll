@@ -2,6 +2,7 @@ package es.uc3m.android.newscroll.ui.components
 
 import android.content.Intent
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -16,7 +17,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.model.NewsArticle
 import androidx.core.net.toUri
@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.shape.CircleShape
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun NewsItem(
@@ -40,9 +41,9 @@ fun NewsItem(
     Box(modifier = modifier.fillMaxSize()) {
 
         // Background image
-        AsyncImage(
-            model = article.imageUrl,
-            contentDescription = article.title,
+        Image(
+            painter = rememberAsyncImagePainter(article.imageUrl),
+            contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
