@@ -11,32 +11,34 @@ class UserViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
 
+
+
     var isLoggedIn = mutableStateOf(auth.currentUser != null)
         private set
 
     var username = mutableStateOf(auth.currentUser?.email ?: "")
         private set
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 auth.signInWithEmailAndPassword(email, password).await()
                 username.value = auth.currentUser?.email ?: ""
                 isLoggedIn.value = true
             } catch (e: Exception) {
-                e.printStackTrace()
+                onError("Usuario o contraseña incorrectos")
             }
         }
     }
 
-    fun register(email: String, password: String) {
+    fun register(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 auth.createUserWithEmailAndPassword(email, password).await()
                 username.value = auth.currentUser?.email ?: ""
                 isLoggedIn.value = true
             } catch (e: Exception) {
-                e.printStackTrace()
+                onError("No se pudo crear la cuenta")
             }
         }
     }

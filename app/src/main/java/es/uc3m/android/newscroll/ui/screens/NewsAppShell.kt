@@ -42,11 +42,7 @@ fun NewsAppShell() {
     // Helper to save state when switching screens
     val navigateToMenuScreen: (String) -> Unit = { route ->
         navController.navigate(route) {
-            popUpTo("feed") {
-                saveState = true
-            }
             launchSingleTop = true
-            restoreState = true
         }
         scope.launch { drawerState.close() }
     }
@@ -55,8 +51,8 @@ fun NewsAppShell() {
     val newsViewModel: NewsViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
 
-    val username by userViewModel.username
-    val isLoggedIn by userViewModel.isLoggedIn
+    val username = userViewModel.username.value
+    val isLoggedIn = userViewModel.isLoggedIn.value
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -128,6 +124,9 @@ fun NewsAppShell() {
                     onClick = {
                         if (isLoggedIn) {
                             userViewModel.logout()
+                            navController.navigate("feed") {
+                                popUpTo("feed") { inclusive = true }
+                            }
                         } else {
                             navController.navigate("profile")
                         }
