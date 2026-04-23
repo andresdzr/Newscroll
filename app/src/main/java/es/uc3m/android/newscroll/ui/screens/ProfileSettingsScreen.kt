@@ -8,16 +8,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
+import es.uc3m.android.newscroll.ui.screens.AuthScreen
 
 @Composable
 fun ProfileSettingsScreen(userViewModel: UserViewModel) {
 
     val isLoggedIn by userViewModel.isLoggedIn
 
-    if (isLoggedIn) {
+    if (userViewModel.isLoggedIn.value) {
         ProfileView(userViewModel)
     } else {
-        LoginView(userViewModel)
+        AuthScreen(userViewModel)
     }
 }
 
@@ -61,14 +62,19 @@ fun LoginView(userViewModel: UserViewModel) {
 
         Button(
             onClick = {
-                // Login simple (sin validación)
-                userViewModel.login(
-                    username.ifBlank { "User" }
-                )
+                userViewModel.login(username, password)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = stringResource(id = R.string.login))
+        }
+        Button(
+            onClick = {
+                userViewModel.register(username, password)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Register")
         }
     }
 }
