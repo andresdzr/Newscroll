@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -21,14 +22,12 @@ import es.uc3m.android.newscroll.R
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.filled.AccountCircle
 
 import androidx.navigation.compose.*
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
-import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,10 +35,9 @@ fun NewsAppShell() {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
     val navController = rememberNavController()
 
-    // Helper to save state when switching screens
+    // 🔧 Navegación simplificada (IMPORTANTE)
     val navigateToMenuScreen: (String) -> Unit = { route ->
         navController.navigate(route) {
             launchSingleTop = true
@@ -77,7 +75,6 @@ fun NewsAppShell() {
 
                 HorizontalDivider()
 
-                // Feed
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text("Feed") },
@@ -85,14 +82,13 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("feed") }
                 )
 
-                // Settings
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                     label = { Text(stringResource(id = R.string.user_preferences)) },
                     selected = false,
                     onClick = { navigateToMenuScreen("settings") }
                 )
-                // Saved
+
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
                     label = { Text(stringResource(id = R.string.saved_articles)) },
@@ -117,16 +113,18 @@ fun NewsAppShell() {
                         )
                     },
                     label = {
-                        Text(if (isLoggedIn) stringResource(id = R.string.logout)
-                        else stringResource(id = R.string.login))
+                        Text(
+                            if (isLoggedIn)
+                                stringResource(id = R.string.logout)
+                            else
+                                stringResource(id = R.string.login)
+                        )
                     },
                     selected = false,
                     onClick = {
                         if (isLoggedIn) {
                             userViewModel.logout()
-                            navController.navigate("feed") {
-                                popUpTo("feed") { inclusive = true }
-                            }
+                            navController.navigate("feed")
                         } else {
                             navController.navigate("profile")
                         }
@@ -156,7 +154,6 @@ fun NewsAppShell() {
             }
         ) { paddingValues ->
 
-            // Screens
             NavHost(
                 navController = navController,
                 startDestination = "feed",
@@ -164,11 +161,15 @@ fun NewsAppShell() {
             ) {
 
                 composable("feed") {
-                    NewsFeedScreen(Modifier, newsViewModel)
+                    NewsFeedScreen(Modifier, newsViewModel, userViewModel)
                 }
 
                 composable("saved") {
-                    SavedScreen(newsViewModel)
+                    if (userViewModel.isLoggedIn.value) {
+                        SavedScreen(newsViewModel, userViewModel)
+                    } else {
+                        AuthScreen(userViewModel)
+                    }
                 }
 
                 composable("settings") {

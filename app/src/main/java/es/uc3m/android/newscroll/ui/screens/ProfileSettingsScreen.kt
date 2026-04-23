@@ -9,6 +9,9 @@ import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.ui.screens.AuthScreen
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 @Composable
 fun ProfileSettingsScreen(userViewModel: UserViewModel) {
@@ -25,7 +28,22 @@ fun ProfileSettingsScreen(userViewModel: UserViewModel) {
 @Composable
 fun ProfileView(userViewModel: UserViewModel) {
 
-    val username by userViewModel.username
+    val username by userViewModel.displayName
+    val photoUrl by userViewModel.photoUrl
+
+    var newName by remember { mutableStateOf(username) }
+
+    LaunchedEffect(Unit) {
+        userViewModel.loadUserProfile()
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            userViewModel.uploadProfileImage(it)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -34,23 +52,56 @@ fun ProfileView(userViewModel: UserViewModel) {
     ) {
 
         Text(
-            text = stringResource(id = R.string.profile),
+            text = "Perfil",
             style = MaterialTheme.typography.headlineMedium
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Username: $username",
-            style = MaterialTheme.typography.bodyLarge
+        if (photoUrl != null && photoUrl!!.isNotEmpty()) {
+            coil.compose.AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                modifier = Modifier.size(100.dp)
+            )
+        } else {
+            Text("Sin foto")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = newName,
+            onValueChange = { newName = it },
+            label = { Text("Nombre de usuario") }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                userViewModel.updateUsername(newName)
+            }
+        ) {
+            Text("Guardar nombre")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                imagePickerLauncher.launch("image/*")
+            }
+        ) {
+            Text("Cambiar foto")
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = { userViewModel.logout() }
         ) {
-            Text(text = stringResource(id = R.string.logout))
+            Text("Cerrar sesión")
         }
     }
 }

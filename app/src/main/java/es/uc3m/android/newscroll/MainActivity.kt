@@ -6,11 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import es.uc3m.android.newscroll.ui.screens.NewsAppShell
 import es.uc3m.android.newscroll.ui.theme.NewscrollTheme
+import com.google.firebase.FirebaseApp
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        FirebaseApp.initializeApp(this)
         setContent {
             NewscrollTheme {
                 NewsAppShell()

@@ -11,22 +11,30 @@ import androidx.compose.ui.res.stringResource
 import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.data.NewsRepository
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
+import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.ui.components.SavedItem
 
-
 @Composable
-fun SavedScreen(viewModel: NewsViewModel) {
+fun SavedScreen(
+    viewModel: NewsViewModel,
+    userViewModel: UserViewModel
+) {
 
     val savedIds by viewModel.savedArticles
     val allArticles = NewsRepository.articles
 
-    // Filtrar artículos guardados
+    // 🔴 Cargar desde Firebase (corregido)
+    LaunchedEffect(Unit) {
+        viewModel.loadSavedArticlesFromFirebase(userViewModel)
+    }
+
+    // Filtrar artículos guardados (NO TOCADO)
     val savedArticles = remember(savedIds, allArticles) {
         allArticles.filter { savedIds.contains(it.id) }
     }
 
     if (savedArticles.isEmpty()) {
-        // Estado vacío
+        // Estado vacío (NO TOCADO)
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -41,7 +49,7 @@ fun SavedScreen(viewModel: NewsViewModel) {
                 SavedItem(
                     article = article,
                     onToggleSaved = {
-                        viewModel.toggleSaved(article.id)
+                        viewModel.toggleSaved(article.id, userViewModel)
                     },
                 )
             }
