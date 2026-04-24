@@ -17,7 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import es.uc3m.android.newscroll.R
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +27,7 @@ import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,7 @@ fun NewsAppShell() {
     val newsViewModel: NewsViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
 
-    val username = userViewModel.username.value
+    val username = userViewModel.displayName.value
     val isLoggedIn = userViewModel.isLoggedIn.value
 
     ModalNavigationDrawer(
@@ -140,13 +140,10 @@ fun NewsAppShell() {
                     title = { Text(text = stringResource(id = R.string.app_name)) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            AsyncImage(
-                                model = "https://picsum.photos/seed/user/100/100",
+                            Icon(
+                                painter = painterResource(id = R.drawable.menu_image),
                                 contentDescription = stringResource(id = R.string.open_menu_description),
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                     }

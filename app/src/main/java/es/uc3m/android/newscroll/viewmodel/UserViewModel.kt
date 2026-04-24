@@ -127,8 +127,10 @@ class UserViewModel : ViewModel() {
             .document(userId)
             .get()
             .addOnSuccessListener { doc ->
+
                 displayName.value = doc.getString("username") ?: ""
                 photoUrl.value = doc.getString("photoUrl")
+
             }
     }
 
@@ -150,32 +152,32 @@ class UserViewModel : ViewModel() {
 
         val ref = storage.reference.child("profile_images/$userId.jpg")
 
-        ref.putFile(uri).addOnSuccessListener {
-            ref.downloadUrl.addOnSuccessListener { downloadUrl ->
-
-                db.collection("users")
-                    .document(userId)
-                    .set(
-                        mapOf("photoUrl" to downloadUrl.toString()),
-                        com.google.firebase.firestore.SetOptions.merge()
-                    )
-
-                photoUrl.value = downloadUrl.toString()
-            }
-        }
-    }
-
-    fun debugCreateUserDoc() {
-        val userId = auth.currentUser?.uid ?: return
-
-        db.collection("users")
-            .document(userId)
-            .set(mapOf("test" to "funciona"))
+        ref.putFile(uri)
             .addOnSuccessListener {
-                println("DEBUG: ESCRITURA OK")
+                ref.downloadUrl
+                    .addOnSuccessListener { downloadUrl ->
+
+                        db.collection("users")
+                            .document(userId)
+                            .set(
+                                mapOf("photoUrl" to downloadUrl.toString()),
+                                com.google.firebase.firestore.SetOptions.merge()
+                            )
+                            .addOnSuccessListener {
+                                println("FOTO GUARDADA")
+                                photoUrl.value = downloadUrl.toString()
+                            }
+                            .addOnFailureListener {
+                                println("ERROR FIRESTORE: ${it.message}")
+                            }
+                    }
+                    .addOnFailureListener {
+                        println("ERROR URL: ${it.message}")
+                    }
             }
             .addOnFailureListener {
-                println("DEBUG: ERROR -> ${it.message}")
+                println("ERROR STORAGE: ${it.message}")
             }
     }
+
 }
