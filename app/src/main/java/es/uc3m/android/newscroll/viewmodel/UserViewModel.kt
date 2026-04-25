@@ -9,11 +9,17 @@ import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
+import com.google.firebase.firestore.SetOptions
 
 data class UserPreview(
     val id: String,
     val username: String,
     val photoUrl: String
+)
+
+data class FriendRequest(
+    val id: String,
+    val fromUserId: String
 )
 
 class UserViewModel : ViewModel() {
@@ -203,7 +209,7 @@ class UserViewModel : ViewModel() {
             )
     }
 
-    fun getFriendRequests(onResult: (List<String>) -> Unit) {
+    fun getFriendRequests(onResult: (List<FriendRequest>) -> Unit) {
         val userId = auth.currentUser?.uid ?: return
 
         db.collection("friend_requests")
@@ -212,49 +218,49 @@ class UserViewModel : ViewModel() {
             .get()
             .addOnSuccessListener { result ->
                 val list = result.map {
-                    it.getString("fromUserId") ?: ""
+                    FriendRequest(
+                        id = it.id,
+                        fromUserId = it.getString("fromUserId") ?: ""
+                    )
                 }
                 onResult(list)
             }
     }
 
-    fun acceptFriendRequest(fromUserId: String) {
+    fun acceptFriendRequest(requestId: String, fromUserId: String) {
         val currentUserId = auth.currentUser?.uid ?: return
 
         val batch = db.batch()
 
         val currentUserRef = db.collection("users").document(currentUserId)
         val otherUserRef = db.collection("users").document(fromUserId)
+        val requestRef = db.collection("friend_requests").document(requestId)
 
         // añadir en ambos
-        batch.update(
+        batch.set(
             currentUserRef,
-            "friends",
-            com.google.firebase.firestore.FieldValue.arrayUnion(fromUserId)
+            mapOf("friends" to com.google.firebase.firestore.FieldValue.arrayUnion(fromUserId)),
+            com.google.firebase.firestore.SetOptions.merge()
         )
 
-        batch.update(
+        batch.set(
             otherUserRef,
-            "friends",
-            com.google.firebase.firestore.FieldValue.arrayUnion(currentUserId)
+            mapOf("friends" to com.google.firebase.firestore.FieldValue.arrayUnion(currentUserId)),
+            com.google.firebase.firestore.SetOptions.merge()
         )
 
-        batch.commit().addOnSuccessListener {
+        // actualizar request
+        batch.update(requestRef, "status", "accepted")
 
-            // marcar solicitud como aceptada
-            db.collection("friend_requests")
-                .whereEqualTo("fromUserId", fromUserId)
-                .whereEqualTo("toUserId", currentUserId)
-                .get()
-                .addOnSuccessListener { result ->
-                    for (doc in result) {
-                        doc.reference.update("status", "accepted")
-                    }
-                }
+        batch.commit()
+            .addOnSuccessListener {
+                println("✅ FRIEND ADDED")
 
-            // crear chat
-            createChatIfNotExists(fromUserId)
-        }
+                createChatIfNotExists(fromUserId)
+            }
+            .addOnFailureListener {
+                println("❌ ERROR: ${it.message}")
+            }
     }
 
     fun createChatIfNotExists(otherUserId: String) {

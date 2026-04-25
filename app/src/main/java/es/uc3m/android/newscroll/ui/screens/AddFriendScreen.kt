@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
+import es.uc3m.android.newscroll.viewmodel.FriendRequest
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
@@ -19,14 +20,15 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
     val userId = userViewModel.getCurrentUserId()
 
     var userIdInput by remember { mutableStateOf("") }
+    var requests by remember { mutableStateOf<List<FriendRequest>>(emptyList()) }
 
-    //  solicitudes (placeholder por ahora)
-    var requests by remember { mutableStateOf<List<String>>(emptyList()) }
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
 
-    //  cargar solicitudes al entrar
+    // cargar solicitudes
     LaunchedEffect(Unit) {
-        userViewModel.getFriendRequests { result ->
-            requests = result
+        userViewModel.getFriendRequests {
+            requests = it
         }
     }
 
@@ -36,11 +38,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
             .padding(16.dp)
     ) {
 
-        val clipboard = LocalClipboardManager.current
-        val context = LocalContext.current
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        // TU USER ID
         Text("Tu userId:")
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -49,12 +47,12 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(userId ?: "")
+            Text(userId)
 
             TextButton(
                 onClick = {
-                    userId?.let { id: String ->
-                        clipboard.setText(AnnotatedString(id))
+                    if (userId.isNotEmpty()) {
+                        clipboard.setText(AnnotatedString(userId))
                         Toast.makeText(context, "ID copiado", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -63,6 +61,8 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Añadir amigo",
             style = MaterialTheme.typography.headlineMedium
@@ -70,7 +70,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔹 INPUT
+        // INPUT
         OutlinedTextField(
             value = userIdInput,
             onValueChange = { userIdInput = it },
@@ -110,14 +110,17 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
         } else {
 
             LazyColumn {
-                items(requests) { requestUserId ->
+                items(requests) { request ->
 
                     FriendRequestItem(
-                        userId = requestUserId,
+                        userId = request.fromUserId,
                         onAccept = {
-                            userViewModel.acceptFriendRequest(requestUserId)
+                            userViewModel.acceptFriendRequest(
+                                request.id,
+                                request.fromUserId
+                            )
 
-                            // RECARGAR
+                            // recargar después de aceptar
                             userViewModel.getFriendRequests {
                                 requests = it
                             }
