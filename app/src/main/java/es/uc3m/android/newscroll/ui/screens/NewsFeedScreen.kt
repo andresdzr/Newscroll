@@ -9,6 +9,8 @@ import es.uc3m.android.newscroll.ui.components.NewsItem
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.data.NewsRepository
+import es.uc3m.android.newscroll.model.NewsArticle
+import es.uc3m.android.newscroll.ui.screens.ShareBottomSheet
 
 @Composable
 fun NewsFeedScreen(
@@ -20,7 +22,11 @@ fun NewsFeedScreen(
     val savedIds by viewModel.savedArticles
     val dummyArticles = NewsRepository.articles
 
-    // 🔴 Cargar artículos guardados al entrar
+    // estado del share
+    var showShareSheet by remember { mutableStateOf(false) }
+    var selectedArticle by remember { mutableStateOf<NewsArticle?>(null) }
+
+    // Cargar artículos guardados al entrar
     LaunchedEffect(Unit) {
         viewModel.loadSavedArticlesFromFirebase(userViewModel)
     }
@@ -40,7 +46,25 @@ fun NewsFeedScreen(
             isSaved = currentArticle.id in savedIds,
             onToggleSaved = {
                 viewModel.toggleSaved(currentArticle.id, userViewModel)
+            },
+
+            // click de compartir
+            onShareClick = {
+                selectedArticle = currentArticle
+                showShareSheet = true
+            }
+        )
+    }
+
+    //  mostrar sheet
+    if (showShareSheet && selectedArticle != null) {
+        ShareBottomSheet(
+            article = selectedArticle!!,
+            onDismiss = {
+                showShareSheet = false
+                selectedArticle = null
             }
         )
     }
 }
+

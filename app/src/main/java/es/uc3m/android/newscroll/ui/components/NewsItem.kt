@@ -27,13 +27,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.shape.CircleShape
 import coil.compose.rememberAsyncImagePainter
+import androidx.compose.material.icons.filled.Share
 
 @Composable
 fun NewsItem(
     modifier: Modifier,
     article: NewsArticle,
     isSaved: Boolean,
-    onToggleSaved: () -> Unit
+    onToggleSaved: () -> Unit,
+    onShareClick: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -107,24 +109,48 @@ fun NewsItem(
                     Text(text = stringResource(R.string.read_full_article))
                 }
 
-                // Botón corazón
-                IconButton(
-                    onClick = onToggleSaved,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.3f),
-                            shape = CircleShape
-                        )
+                // CONTENEDOR DE BOTONES (LIKE + SHARE)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = if (isSaved)
-                            Icons.Filled.Favorite
-                        else
-                            Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Save",
-                        tint = if (isSaved) Color.Red else Color.LightGray
-                    )
+
+                    // Botón compartir
+                    IconButton(
+                        onClick = onShareClick,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Share",
+                            tint = Color.White
+                        )
+                    }
+
+                    // Botón corazón
+                    IconButton(
+                        onClick = onToggleSaved,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = if (isSaved)
+                                Icons.Filled.Favorite
+                            else
+                                Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Save",
+                            tint = if (isSaved) Color.Red else Color.LightGray
+                        )
+                    }
                 }
             }
         }

@@ -9,12 +9,12 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.R
@@ -37,7 +37,6 @@ fun NewsAppShell() {
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
 
-    // 🔧 Navegación simplificada (IMPORTANTE)
     val navigateToMenuScreen: (String) -> Unit = { route ->
         navController.navigate(route) {
             launchSingleTop = true
@@ -68,7 +67,7 @@ fun NewsAppShell() {
                 }
 
                 Text(
-                    text = username,
+                    text = if (isLoggedIn && username.isNotBlank()) username else "Newscroll",
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
@@ -102,6 +101,16 @@ fun NewsAppShell() {
                     selected = false,
                     onClick = { navigateToMenuScreen("profile") }
                 )
+
+                // MENSAJES SOLO SI LOG IN
+                if (isLoggedIn) {
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        label = { Text("Mensajes") },
+                        selected = false,
+                        onClick = { navigateToMenuScreen("messages") }
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -175,6 +184,14 @@ fun NewsAppShell() {
 
                 composable("profile") {
                     ProfileSettingsScreen(userViewModel)
+                }
+
+                composable("messages") {
+                    MessagesScreen(userViewModel, navController)
+                }
+
+                composable("add_friend") {
+                    AddFriendScreen(userViewModel)
                 }
             }
         }

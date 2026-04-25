@@ -21,7 +21,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // 🔴 Error LOCAL (no en ViewModel)
+    // Error LOCAL (no en ViewModel)
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -77,7 +77,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔴 ERROR
+        // ERROR
         if (error != null) {
             Text(
                 text = error!!,

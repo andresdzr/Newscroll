@@ -23,18 +23,18 @@ fun SavedScreen(
     val savedIds by viewModel.savedArticles
     val allArticles = NewsRepository.articles
 
-    // 🔴 Cargar desde Firebase (corregido)
+    // Cargar desde Firebase
     LaunchedEffect(Unit) {
         viewModel.loadSavedArticlesFromFirebase(userViewModel)
     }
 
-    // Filtrar artículos guardados (NO TOCADO)
+    // Filtrar artículos guardados
     val savedArticles = remember(savedIds, allArticles) {
         allArticles.filter { savedIds.contains(it.id) }
     }
 
     if (savedArticles.isEmpty()) {
-        // Estado vacío (NO TOCADO)
+        // Estado vacío
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

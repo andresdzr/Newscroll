@@ -10,6 +10,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 
+data class UserPreview(
+    val id: String,
+    val username: String,
+    val photoUrl: String
+)
+
 class UserViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
@@ -29,6 +35,9 @@ class UserViewModel : ViewModel() {
 
     private val storage = FirebaseStorage.getInstance()
 
+    fun getCurrentUserId(): String {
+        return auth.currentUser?.uid ?: ""
+    }
     //  LOGIN
     fun login(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
@@ -180,4 +189,139 @@ class UserViewModel : ViewModel() {
             }
     }
 
+    fun sendFriendRequest(toUserId: String) {
+        val fromUserId = auth.currentUser?.uid ?: return
+
+        db.collection("friend_requests")
+            .add(
+                mapOf(
+                    "fromUserId" to fromUserId,
+                    "toUserId" to toUserId,
+                    "status" to "pending",
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+    }
+
+    fun getFriendRequests(onResult: (List<String>) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+
+        db.collection("friend_requests")
+            .whereEqualTo("toUserId", userId)
+            .whereEqualTo("status", "pending")
+            .get()
+            .addOnSuccessListener { result ->
+                val list = result.map {
+                    it.getString("fromUserId") ?: ""
+                }
+                onResult(list)
+            }
+    }
+
+    fun acceptFriendRequest(fromUserId: String) {
+        val currentUserId = auth.currentUser?.uid ?: return
+
+        val batch = db.batch()
+
+        val currentUserRef = db.collection("users").document(currentUserId)
+        val otherUserRef = db.collection("users").document(fromUserId)
+
+        // añadir en ambos
+        batch.update(
+            currentUserRef,
+            "friends",
+            com.google.firebase.firestore.FieldValue.arrayUnion(fromUserId)
+        )
+
+        batch.update(
+            otherUserRef,
+            "friends",
+            com.google.firebase.firestore.FieldValue.arrayUnion(currentUserId)
+        )
+
+        batch.commit().addOnSuccessListener {
+
+            // marcar solicitud como aceptada
+            db.collection("friend_requests")
+                .whereEqualTo("fromUserId", fromUserId)
+                .whereEqualTo("toUserId", currentUserId)
+                .get()
+                .addOnSuccessListener { result ->
+                    for (doc in result) {
+                        doc.reference.update("status", "accepted")
+                    }
+                }
+
+            // crear chat
+            createChatIfNotExists(fromUserId)
+        }
+    }
+
+    fun createChatIfNotExists(otherUserId: String) {
+        val currentUserId = auth.currentUser?.uid ?: return
+
+        db.collection("chats")
+            .whereArrayContains("users", currentUserId)
+            .get()
+            .addOnSuccessListener { result ->
+
+                val exists = result.any { doc ->
+                    val users = doc.get("users") as List<*>
+                    users.contains(otherUserId)
+                }
+
+                if (!exists) {
+                    db.collection("chats").add(
+                        mapOf(
+                            "users" to listOf(currentUserId, otherUserId),
+                            "lastMessage" to "",
+                            "timestamp" to System.currentTimeMillis()
+                        )
+                    )
+                }
+            }
+    }
+
+
+    fun getChats(onResult: (List<UserPreview>) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+
+        db.collection("chats")
+            .whereArrayContains("users", userId)
+            .get()
+            .addOnSuccessListener { result ->
+
+                val otherUsers = mutableListOf<String>()
+
+                result.forEach { doc ->
+                    val users = doc.get("users") as List<*>
+                    val other = users.find { it != userId } as String
+                    otherUsers.add(other)
+                }
+
+                // cargar datos de esos users
+                val finalList = mutableListOf<UserPreview>()
+
+                otherUsers.forEach { uid ->
+                    db.collection("users")
+                        .document(uid)
+                        .get()
+                        .addOnSuccessListener { userDoc ->
+
+                            val username = userDoc.getString("username") ?: "Usuario"
+                            val photoUrl = userDoc.getString("photoUrl") ?: ""
+
+                            finalList.add(
+                                UserPreview(uid, username, photoUrl)
+                            )
+
+                            if (finalList.size == otherUsers.size) {
+                                onResult(finalList)
+                            }
+                        }
+                }
+            }
+    }
+
 }
+

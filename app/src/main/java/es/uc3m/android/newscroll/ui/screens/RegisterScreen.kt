@@ -24,7 +24,7 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var repeatPasswordVisible by remember { mutableStateOf(false) }
 
-    // 🔴 Error LOCAL
+    // Error LOCAL
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -118,7 +118,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 🔴 ERROR
+        // ERROR
         if (error != null) {
             Text(
                 text = error!!,
