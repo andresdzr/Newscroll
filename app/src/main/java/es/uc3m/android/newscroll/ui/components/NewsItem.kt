@@ -5,9 +5,12 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,17 +20,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import coil.compose.rememberAsyncImagePainter
 import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.model.NewsArticle
-import androidx.core.net.toUri
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.foundation.shape.CircleShape
-import coil.compose.rememberAsyncImagePainter
-import androidx.compose.material.icons.filled.Share
 
 @Composable
 fun NewsItem(
@@ -42,7 +38,7 @@ fun NewsItem(
 
     Box(modifier = modifier.fillMaxSize()) {
 
-        // Background image
+        // 🔹 Imagen de fondo
         Image(
             painter = rememberAsyncImagePainter(article.imageUrl),
             contentDescription = null,
@@ -50,7 +46,7 @@ fun NewsItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Gradient overlay
+        // 🔹 Gradiente
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -62,7 +58,7 @@ fun NewsItem(
                 )
         )
 
-        // Content
+        // 🔹 Contenido
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -91,7 +87,7 @@ fun NewsItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Botón leer artículo
+                // 🔹 Botón leer artículo
                 Button(
                     onClick = {
                         val url = article.articleUrl
@@ -104,43 +100,40 @@ fun NewsItem(
                                 Log.e("NewsApp", "Cannot open URL: $url", e)
                             }
                         }
-                    },
+                    }
                 ) {
                     Text(text = stringResource(R.string.read_full_article))
                 }
 
-                // CONTENEDOR DE BOTONES (LIKE + SHARE)
+                // 🔹 BOTONES DERECHA (SHARE + LIKE)
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // Botón compartir
+                    // SHARE
                     IconButton(
-                        onClick = onShareClick,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.3f),
-                                shape = CircleShape
-                            )
+                        onClick = { onShareClick() },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.Black.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Share,
                             contentDescription = "Share",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.padding(4.dp)
                         )
                     }
 
-                    // Botón corazón
+                    // LIKE
                     IconButton(
                         onClick = onToggleSaved,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.3f),
-                                shape = CircleShape
-                            )
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.Black.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = if (isSaved)
@@ -148,7 +141,8 @@ fun NewsItem(
                             else
                                 Icons.Outlined.FavoriteBorder,
                             contentDescription = "Save",
-                            tint = if (isSaved) Color.Red else Color.LightGray
+                            tint = if (isSaved) Color.Red else Color.LightGray,
+                            modifier = Modifier.padding(4.dp)
                         )
                     }
                 }

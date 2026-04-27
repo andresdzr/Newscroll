@@ -10,7 +10,6 @@ import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.data.NewsRepository
 import es.uc3m.android.newscroll.model.NewsArticle
-import es.uc3m.android.newscroll.ui.screens.ShareBottomSheet
 
 @Composable
 fun NewsFeedScreen(
@@ -20,25 +19,28 @@ fun NewsFeedScreen(
 ) {
 
     val savedIds by viewModel.savedArticles
-    val dummyArticles = NewsRepository.articles
+    val articles = remember { NewsRepository.articles }
 
-    // estado del share
-    var showShareSheet by remember { mutableStateOf(false) }
+    // 🔹 estado share
     var selectedArticle by remember { mutableStateOf<NewsArticle?>(null) }
 
-    // Cargar artículos guardados al entrar
+    val showShareSheet = selectedArticle != null
+
+    // 🔹 cargar saved articles
     LaunchedEffect(Unit) {
         viewModel.loadSavedArticlesFromFirebase(userViewModel)
     }
 
-    val pagerState = rememberPagerState(pageCount = { dummyArticles.size })
+    val pagerState = rememberPagerState(
+        pageCount = { articles.size }
+    )
 
     VerticalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize()
     ) { page ->
 
-        val currentArticle = dummyArticles[page]
+        val currentArticle = articles[page]
 
         NewsItem(
             modifier = Modifier,
@@ -47,24 +49,20 @@ fun NewsFeedScreen(
             onToggleSaved = {
                 viewModel.toggleSaved(currentArticle.id, userViewModel)
             },
-
-            // click de compartir
             onShareClick = {
                 selectedArticle = currentArticle
-                showShareSheet = true
             }
         )
     }
 
-    //  mostrar sheet
-    if (showShareSheet && selectedArticle != null) {
+    // SHARE SHEET
+    if (showShareSheet) {
         ShareBottomSheet(
             article = selectedArticle!!,
+            userViewModel = userViewModel, // AÑADIR
             onDismiss = {
-                showShareSheet = false
                 selectedArticle = null
             }
         )
     }
 }
-

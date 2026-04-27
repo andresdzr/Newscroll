@@ -5,16 +5,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.R
@@ -37,19 +31,27 @@ fun NewsAppShell() {
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
 
-    val navigateToMenuScreen: (String) -> Unit = { route ->
-        navController.navigate(route) {
-            launchSingleTop = true
-        }
-        scope.launch { drawerState.close() }
-    }
-
     val settingsViewModel: SettingsViewModel = viewModel()
     val newsViewModel: NewsViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
 
     val username = userViewModel.displayName.value
     val isLoggedIn = userViewModel.isLoggedIn.value
+
+    // 🔥 Cargar perfil SIEMPRE
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            userViewModel.loadUserProfile()
+        }
+    }
+
+    val navigateToMenuScreen: (String) -> Unit = { route ->
+        navController.navigate(route) {
+            launchSingleTop = true
+            popUpTo("feed") { saveState = true }
+        }
+        scope.launch { drawerState.close() }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -102,7 +104,7 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("profile") }
                 )
 
-                // MENSAJES SOLO SI LOG IN
+                // 🔹 MENSAJES SOLO SI LOGUEADO
                 if (isLoggedIn) {
                     NavigationDrawerItem(
                         icon = { Icon(Icons.Default.Email, contentDescription = null) },
@@ -133,7 +135,9 @@ fun NewsAppShell() {
                     onClick = {
                         if (isLoggedIn) {
                             userViewModel.logout()
-                            navController.navigate("feed")
+                            navController.navigate("feed") {
+                                popUpTo("feed") { inclusive = true }
+                            }
                         } else {
                             navController.navigate("profile")
                         }
@@ -146,7 +150,14 @@ fun NewsAppShell() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = stringResource(id = R.string.app_name)) },
+                    title = {
+                        Text(
+                            text = if (isLoggedIn && username.isNotBlank())
+                                username
+                            else
+                                stringResource(id = R.string.app_name)
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(
@@ -192,6 +203,17 @@ fun NewsAppShell() {
 
                 composable("add_friend") {
                     AddFriendScreen(userViewModel)
+                }
+
+                // 🔥 CHAT SCREEN (CLAVE)
+                composable("chat/{chatId}") { backStackEntry ->
+
+                    val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+
+                    ChatScreen(
+                        userViewModel = userViewModel,
+                        chatId = chatId
+                    )
                 }
             }
         }

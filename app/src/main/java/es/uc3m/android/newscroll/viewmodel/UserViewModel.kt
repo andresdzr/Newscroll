@@ -11,6 +11,8 @@ import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 import com.google.firebase.firestore.SetOptions
 
+// 🔹 MODELOS
+
 data class UserPreview(
     val id: String,
     val username: String,
@@ -22,10 +24,25 @@ data class FriendRequest(
     val fromUserId: String
 )
 
+data class ChatPreview(
+    val chatId: String,
+    val otherUserId: String,
+    val username: String,
+    val photoUrl: String
+)
+
+data class Message(
+    val senderId: String,
+    val type: String,
+    val text: String?,
+    val articleId: String?
+)
+
 class UserViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     var isLoggedIn = mutableStateOf(auth.currentUser != null)
         private set
@@ -39,70 +56,61 @@ class UserViewModel : ViewModel() {
     var photoUrl = mutableStateOf<String?>(null)
         private set
 
-    private val storage = FirebaseStorage.getInstance()
-
     fun getCurrentUserId(): String {
         return auth.currentUser?.uid ?: ""
     }
-    //  LOGIN
+
+    // 🔹 LOGIN
     fun login(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 auth.signInWithEmailAndPassword(email, password).await()
                 username.value = auth.currentUser?.email ?: ""
                 isLoggedIn.value = true
+                loadUserProfile()
             } catch (e: Exception) {
                 onError("Usuario o contraseña incorrectos")
             }
         }
     }
 
-    //  REGISTER
+    // 🔹 REGISTER
     fun register(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
+                val userId = result.user?.uid ?: return@launch
 
-                val userId = result.user?.uid
-                if (userId == null) {
-                    onError("Error interno (UID null)")
-                    return@launch
-                }
-
-                // FORZAMOS creación del documento
                 db.collection("users")
                     .document(userId)
                     .set(
                         mapOf(
                             "username" to email.substringBefore("@"),
-                            "photoUrl" to ""
+                            "photoUrl" to "",
+                            "friends" to emptyList<String>()
                         )
                     )
                     .await()
 
                 username.value = email
                 isLoggedIn.value = true
-
-                println("DEBUG: Usuario creado en Firestore $userId")
+                loadUserProfile()
 
             } catch (e: Exception) {
-                e.printStackTrace()
                 onError("No se pudo crear la cuenta")
             }
         }
     }
 
-    //  LOGOUT
     fun logout() {
         auth.signOut()
         isLoggedIn.value = false
         username.value = ""
     }
 
-    //  GUARDAR ARTÍCULO
+    // 🔹 SAVED ARTICLES
     fun saveArticle(articleId: String) {
-        val userId = auth.currentUser?.uid ?: return
-
+        val userId = getCurrentUserId()
         db.collection("users")
             .document(userId)
             .collection("saved_articles")
@@ -110,24 +118,20 @@ class UserViewModel : ViewModel() {
             .set(mapOf("id" to articleId))
     }
 
-    //  OBTENER ARTÍCULOS
     fun getSavedArticles(onResult: (List<String>) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = getCurrentUserId()
 
         db.collection("users")
             .document(userId)
             .collection("saved_articles")
             .get()
-            .addOnSuccessListener { result ->
-                val list = result.map { it.id }
-                onResult(list)
+            .addOnSuccessListener {
+                onResult(it.map { doc -> doc.id })
             }
     }
 
-    //  ELIMINAR ARTÍCULO
     fun removeArticle(articleId: String) {
-        val userId = auth.currentUser?.uid ?: return
-
+        val userId = getCurrentUserId()
         db.collection("users")
             .document(userId)
             .collection("saved_articles")
@@ -135,100 +139,75 @@ class UserViewModel : ViewModel() {
             .delete()
     }
 
+    // 🔹 PROFILE
     fun loadUserProfile() {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = getCurrentUserId()
 
         db.collection("users")
             .document(userId)
             .get()
-            .addOnSuccessListener { doc ->
-
-                displayName.value = doc.getString("username") ?: ""
-                photoUrl.value = doc.getString("photoUrl")
-
+            .addOnSuccessListener {
+                displayName.value = it.getString("username") ?: ""
+                photoUrl.value = it.getString("photoUrl")
             }
     }
 
     fun updateUsername(newName: String) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = getCurrentUserId()
 
         db.collection("users")
             .document(userId)
-            .set(
-                mapOf("username" to newName),
-                com.google.firebase.firestore.SetOptions.merge()
-            )
+            .set(mapOf("username" to newName), SetOptions.merge())
 
         displayName.value = newName
     }
 
     fun uploadProfileImage(uri: Uri) {
-        val userId = auth.currentUser?.uid ?: return
-
+        val userId = getCurrentUserId()
         val ref = storage.reference.child("profile_images/$userId.jpg")
 
-        ref.putFile(uri)
-            .addOnSuccessListener {
-                ref.downloadUrl
-                    .addOnSuccessListener { downloadUrl ->
+        ref.putFile(uri).addOnSuccessListener {
+            ref.downloadUrl.addOnSuccessListener { url ->
+                db.collection("users")
+                    .document(userId)
+                    .set(mapOf("photoUrl" to url.toString()), SetOptions.merge())
 
-                        db.collection("users")
-                            .document(userId)
-                            .set(
-                                mapOf("photoUrl" to downloadUrl.toString()),
-                                com.google.firebase.firestore.SetOptions.merge()
-                            )
-                            .addOnSuccessListener {
-                                println("FOTO GUARDADA")
-                                photoUrl.value = downloadUrl.toString()
-                            }
-                            .addOnFailureListener {
-                                println("ERROR FIRESTORE: ${it.message}")
-                            }
-                    }
-                    .addOnFailureListener {
-                        println("ERROR URL: ${it.message}")
-                    }
+                photoUrl.value = url.toString()
             }
-            .addOnFailureListener {
-                println("ERROR STORAGE: ${it.message}")
-            }
+        }
     }
 
+    // 🔹 FRIEND REQUESTS
     fun sendFriendRequest(toUserId: String) {
-        val fromUserId = auth.currentUser?.uid ?: return
+        val fromUserId = getCurrentUserId()
 
-        db.collection("friend_requests")
-            .add(
-                mapOf(
-                    "fromUserId" to fromUserId,
-                    "toUserId" to toUserId,
-                    "status" to "pending",
-                    "timestamp" to System.currentTimeMillis()
-                )
+        db.collection("friend_requests").add(
+            mapOf(
+                "fromUserId" to fromUserId,
+                "toUserId" to toUserId,
+                "status" to "pending",
+                "timestamp" to System.currentTimeMillis()
             )
+        )
     }
 
     fun getFriendRequests(onResult: (List<FriendRequest>) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = getCurrentUserId()
 
         db.collection("friend_requests")
             .whereEqualTo("toUserId", userId)
             .whereEqualTo("status", "pending")
             .get()
-            .addOnSuccessListener { result ->
-                val list = result.map {
-                    FriendRequest(
-                        id = it.id,
-                        fromUserId = it.getString("fromUserId") ?: ""
-                    )
+            .addOnSuccessListener {
+                val list = it.map { doc ->
+                    FriendRequest(doc.id, doc.getString("fromUserId") ?: "")
                 }
                 onResult(list)
             }
     }
 
     fun acceptFriendRequest(requestId: String, fromUserId: String) {
-        val currentUserId = auth.currentUser?.uid ?: return
+        val currentUserId = getCurrentUserId()
 
         val batch = db.batch()
 
@@ -236,43 +215,34 @@ class UserViewModel : ViewModel() {
         val otherUserRef = db.collection("users").document(fromUserId)
         val requestRef = db.collection("friend_requests").document(requestId)
 
-        // añadir en ambos
-        batch.set(
-            currentUserRef,
+        batch.set(currentUserRef,
             mapOf("friends" to com.google.firebase.firestore.FieldValue.arrayUnion(fromUserId)),
-            com.google.firebase.firestore.SetOptions.merge()
+            SetOptions.merge()
         )
 
-        batch.set(
-            otherUserRef,
+        batch.set(otherUserRef,
             mapOf("friends" to com.google.firebase.firestore.FieldValue.arrayUnion(currentUserId)),
-            com.google.firebase.firestore.SetOptions.merge()
+            SetOptions.merge()
         )
 
-        // actualizar request
         batch.update(requestRef, "status", "accepted")
 
-        batch.commit()
-            .addOnSuccessListener {
-                println("✅ FRIEND ADDED")
-
-                createChatIfNotExists(fromUserId)
-            }
-            .addOnFailureListener {
-                println("❌ ERROR: ${it.message}")
-            }
+        batch.commit().addOnSuccessListener {
+            createChatIfNotExists(fromUserId)
+        }
     }
 
+    // 🔹 CHAT CREATION
     fun createChatIfNotExists(otherUserId: String) {
-        val currentUserId = auth.currentUser?.uid ?: return
+        val currentUserId = getCurrentUserId()
 
         db.collection("chats")
             .whereArrayContains("users", currentUserId)
             .get()
             .addOnSuccessListener { result ->
 
-                val exists = result.any { doc ->
-                    val users = doc.get("users") as List<*>
+                val exists = result.any {
+                    val users = it.get("users") as List<*>
                     users.contains(otherUserId)
                 }
 
@@ -288,46 +258,102 @@ class UserViewModel : ViewModel() {
             }
     }
 
-
-    fun getChats(onResult: (List<UserPreview>) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+    // 🔹 GET CHATS
+    fun getChats(onResult: (List<ChatPreview>) -> Unit) {
+        val currentUserId = getCurrentUserId()
 
         db.collection("chats")
-            .whereArrayContains("users", userId)
+            .whereArrayContains("users", currentUserId)
             .get()
             .addOnSuccessListener { result ->
 
-                val otherUsers = mutableListOf<String>()
-
-                result.forEach { doc ->
-                    val users = doc.get("users") as List<*>
-                    val other = users.find { it != userId } as String
-                    otherUsers.add(other)
+                if (result.isEmpty) {
+                    onResult(emptyList())
+                    return@addOnSuccessListener
                 }
 
-                // cargar datos de esos users
-                val finalList = mutableListOf<UserPreview>()
+                val chatList = mutableListOf<ChatPreview>()
 
-                otherUsers.forEach { uid ->
+                result.forEach { doc ->
+                    val chatId = doc.id
+                    val users = doc.get("users") as List<*>
+                    val otherUserId = users.find { it != currentUserId } as String
+
                     db.collection("users")
-                        .document(uid)
+                        .document(otherUserId)
                         .get()
                         .addOnSuccessListener { userDoc ->
 
-                            val username = userDoc.getString("username") ?: "Usuario"
-                            val photoUrl = userDoc.getString("photoUrl") ?: ""
-
-                            finalList.add(
-                                UserPreview(uid, username, photoUrl)
+                            chatList.add(
+                                ChatPreview(
+                                    chatId,
+                                    otherUserId,
+                                    userDoc.getString("username") ?: "Usuario",
+                                    userDoc.getString("photoUrl") ?: ""
+                                )
                             )
 
-                            if (finalList.size == otherUsers.size) {
-                                onResult(finalList)
+                            if (chatList.size == result.size()) {
+                                onResult(chatList)
                             }
                         }
                 }
             }
     }
 
-}
+    // 🔹 SEND MESSAGE
+    fun sendTextMessage(chatId: String, text: String) {
+        val userId = getCurrentUserId()
 
+        db.collection("chats")
+            .document(chatId)
+            .collection("messages")
+            .add(
+                mapOf(
+                    "senderId" to userId,
+                    "type" to "text",
+                    "text" to text,
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+    }
+
+    fun sendArticleMessage(chatId: String, articleId: String) {
+        val userId = getCurrentUserId()
+
+        db.collection("chats")
+            .document(chatId)
+            .collection("messages")
+            .add(
+                mapOf(
+                    "senderId" to userId,
+                    "type" to "article",
+                    "articleId" to articleId,
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+    }
+
+    // 🔹 REALTIME LISTENER
+    fun listenMessages(chatId: String, onUpdate: (List<Message>) -> Unit) {
+
+        db.collection("chats")
+            .document(chatId)
+            .collection("messages")
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshot, _ ->
+
+                if (snapshot != null) {
+                    val list = snapshot.map {
+                        Message(
+                            senderId = it.getString("senderId") ?: "",
+                            type = it.getString("type") ?: "text",
+                            text = it.getString("text"),
+                            articleId = it.getString("articleId")
+                        )
+                    }
+                    onUpdate(list)
+                }
+            }
+    }
+}

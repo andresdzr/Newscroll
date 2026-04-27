@@ -1,8 +1,6 @@
 package es.uc3m.android.newscroll.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -10,14 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
-import es.uc3m.android.newscroll.viewmodel.UserPreview
+import es.uc3m.android.newscroll.viewmodel.ChatPreview
+import es.uc3m.android.newscroll.ui.components.ChatItem
 
 @Composable
 fun MessagesScreen(
@@ -25,13 +19,13 @@ fun MessagesScreen(
     navController: NavHostController
 ) {
 
-    // estado correcto (ahora con datos completos)
-    var friends by remember { mutableStateOf<List<UserPreview>>(emptyList()) }
+    // 🔹 SOLO chats (correcto)
+    var chats by remember { mutableStateOf<List<ChatPreview>>(emptyList()) }
 
-    // cargar desde Firebase
+    // 🔹 cargar chats
     LaunchedEffect(Unit) {
         userViewModel.getChats {
-            friends = it
+            chats = it
         }
     }
 
@@ -41,7 +35,7 @@ fun MessagesScreen(
             .padding(16.dp)
     ) {
 
-        // HEADER
+        // 🔹 HEADER
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -64,8 +58,8 @@ fun MessagesScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // LISTA
-        if (friends.isEmpty()) {
+        // 🔹 LISTA DE CHATS
+        if (chats.isEmpty()) {
 
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -77,62 +71,18 @@ fun MessagesScreen(
         } else {
 
             LazyColumn {
-                items(friends) { user ->
+                items(chats) { chat ->
 
                     ChatItem(
-                        user = user,
+                        username = chat.username,
+                        photoUrl = chat.photoUrl,
                         onClick = {
-                            // siguiente paso: abrir chat
+                            // navegación
+                            navController.navigate("chat/${chat.chatId}")
                         }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ChatItem(
-    user: UserPreview,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        // 🔹 FOTO REAL o fallback
-        if (user.photoUrl.isNotEmpty()) {
-            AsyncImage(
-                model = user.photoUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.default_avatar),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // USERNAME
-        Text(
-            text = user.username,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        // Flecha
-        Text(">")
     }
 }

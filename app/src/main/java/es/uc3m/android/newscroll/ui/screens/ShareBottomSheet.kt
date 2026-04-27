@@ -4,22 +4,34 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.model.NewsArticle
+import es.uc3m.android.newscroll.viewmodel.UserViewModel
+import es.uc3m.android.newscroll.viewmodel.ChatPreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShareBottomSheet(
     article: NewsArticle,
+    userViewModel: UserViewModel,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
+
+    var chats by remember { mutableStateOf<List<ChatPreview>>(emptyList()) }
+
+    // 🔹 Cargar chats reales
+    LaunchedEffect(Unit) {
+        userViewModel.getChats {
+            chats = it
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss
@@ -28,7 +40,7 @@ fun ShareBottomSheet(
             modifier = Modifier.padding(16.dp)
         ) {
 
-            // Copiar enlace
+            // 🔹 Copiar enlace
             Button(
                 onClick = {
                     clipboard.setText(AnnotatedString(article.articleUrl))
@@ -41,7 +53,7 @@ fun ShareBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Compartir fuera de la app
+            // 🔹 Compartir fuera de la app
             Button(
                 onClick = {
                     val intent = Intent(Intent.ACTION_SEND).apply {
@@ -60,7 +72,7 @@ fun ShareBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Sección chats
+            // 🔹 Enviar a chats
             Text(
                 text = "Enviar a:",
                 style = MaterialTheme.typography.titleMedium
@@ -68,13 +80,30 @@ fun ShareBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            val recentChats = listOf<String>() // luego vendrá de Firebase
-
-            if (recentChats.isEmpty()) {
+            if (chats.isEmpty()) {
                 Text("No hay chats recientes")
             } else {
-                recentChats.take(3).forEach { chat ->
-                    Text(chat)
+
+                chats.take(3).forEach { chat ->
+
+                    Button(
+                        onClick = {
+                            userViewModel.sendArticleMessage(chat.chatId, article.id)
+
+                            Toast.makeText(
+                                context,
+                                "Enviado a ${chat.username}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            onDismiss()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(chat.username)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
 
