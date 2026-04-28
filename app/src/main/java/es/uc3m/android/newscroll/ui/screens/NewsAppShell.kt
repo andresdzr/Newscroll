@@ -1,7 +1,6 @@
 package es.uc3m.android.newscroll.ui.screens
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -9,36 +8,37 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import es.uc3m.android.newscroll.R
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-
-import androidx.navigation.compose.*
-import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.*
+import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
+import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
+import es.uc3m.android.newscroll.viewmodel.SettingsViewModelFactory
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
-import androidx.compose.ui.res.painterResource
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppShell() {
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
+    val context = LocalContext.current
 
-    val settingsViewModel: SettingsViewModel = viewModel()
+    // Initialize ViewModels
+    val settingsViewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(context)
+    )
     val newsViewModel: NewsViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
 
     val username = userViewModel.displayName.value
     val isLoggedIn = userViewModel.isLoggedIn.value
 
-    // 🔥 Cargar perfil SIEMPRE
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             userViewModel.loadUserProfile()
@@ -57,7 +57,6 @@ fun NewsAppShell() {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-
                 IconButton(
                     onClick = { scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(8.dp)
@@ -90,12 +89,14 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("settings") }
                 )
 
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                    label = { Text(stringResource(id = R.string.saved_articles)) },
-                    selected = false,
-                    onClick = { navigateToMenuScreen("saved") }
-                )
+                if (isLoggedIn) {
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
+                        label = { Text(stringResource(id = R.string.saved_articles)) },
+                        selected = false,
+                        onClick = { navigateToMenuScreen("saved") }
+                    )
+                }
 
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
@@ -104,7 +105,6 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("profile") }
                 )
 
-                // 🔹 MENSAJES SOLO SI LOGUEADO
                 if (isLoggedIn) {
                     NavigationDrawerItem(
                         icon = { Icon(Icons.Default.Email, contentDescription = null) },
@@ -125,10 +125,8 @@ fun NewsAppShell() {
                     },
                     label = {
                         Text(
-                            if (isLoggedIn)
-                                stringResource(id = R.string.logout)
-                            else
-                                stringResource(id = R.string.login)
+                            if (isLoggedIn) stringResource(id = R.string.logout)
+                            else stringResource(id = R.string.login)
                         )
                     },
                     selected = false,
@@ -152,10 +150,8 @@ fun NewsAppShell() {
                 TopAppBar(
                     title = {
                         Text(
-                            text = if (isLoggedIn && username.isNotBlank())
-                                username
-                            else
-                                stringResource(id = R.string.app_name)
+                            text = if (isLoggedIn && username.isNotBlank()) username
+                            else stringResource(id = R.string.app_name)
                         )
                     },
                     navigationIcon = {
@@ -170,50 +166,23 @@ fun NewsAppShell() {
                 )
             }
         ) { paddingValues ->
-
             NavHost(
                 navController = navController,
                 startDestination = "feed",
                 modifier = Modifier.padding(paddingValues)
             ) {
-
-                composable("feed") {
-                    NewsFeedScreen(Modifier, newsViewModel, userViewModel)
-                }
-
+                composable("feed") { NewsFeedScreen(Modifier, newsViewModel, userViewModel) }
                 composable("saved") {
-                    if (userViewModel.isLoggedIn.value) {
-                        SavedScreen(newsViewModel, userViewModel)
-                    } else {
-                        AuthScreen(userViewModel)
-                    }
+                    if (userViewModel.isLoggedIn.value) SavedScreen(newsViewModel, userViewModel)
+                    else AuthScreen(userViewModel)
                 }
-
-                composable("settings") {
-                    SettingsScreen(settingsViewModel)
-                }
-
-                composable("profile") {
-                    ProfileSettingsScreen(userViewModel)
-                }
-
-                composable("messages") {
-                    MessagesScreen(userViewModel, navController)
-                }
-
-                composable("add_friend") {
-                    AddFriendScreen(userViewModel)
-                }
-
-                // 🔥 CHAT SCREEN (CLAVE)
+                composable("settings") { SettingsScreen(settingsViewModel) }
+                composable("profile") { ProfileSettingsScreen(userViewModel) }
+                composable("messages") { MessagesScreen(userViewModel, navController) }
+                composable("add_friend") { AddFriendScreen(userViewModel) }
                 composable("chat/{chatId}") { backStackEntry ->
-
                     val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
-
-                    ChatScreen(
-                        userViewModel = userViewModel,
-                        chatId = chatId
-                    )
+                    ChatScreen(userViewModel = userViewModel, chatId = chatId)
                 }
             }
         }

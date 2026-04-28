@@ -1,19 +1,20 @@
 package es.uc3m.android.newscroll.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.R
-import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
+import es.uc3m.android.newscroll.viewmodel.AppTheme
 import es.uc3m.android.newscroll.viewmodel.LocationMode
+import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 
 val filterOptions = listOf(
     "Technology, ML & AI",
@@ -23,34 +24,74 @@ val filterOptions = listOf(
     "Survival Knowledge"
 )
 
-
 @Composable
-fun SettingsScreen(
-    viewModel: SettingsViewModel
-) {
+fun SettingsScreen(viewModel: SettingsViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-
-        FiltersSection(viewModel)
-
+        ThemeSection(viewModel)
         Spacer(modifier = Modifier.height(12.dp))
-
+        FiltersSection(viewModel)
+        Spacer(modifier = Modifier.height(12.dp))
         LocationSection(viewModel)
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ThemeSection(viewModel: SettingsViewModel) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedTheme = viewModel.appTheme.value
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "App Theme", style = MaterialTheme.typography.titleMedium)
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null
+            )
+        }
+
+        AnimatedVisibility(visible = expanded) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val themes = listOf(AppTheme.SYSTEM, AppTheme.LIGHT, AppTheme.DARK)
+                themes.forEach { theme ->
+                    FilterChip(
+                        selected = selectedTheme == theme,
+                        onClick = { viewModel.setTheme(theme) },
+                        label = {
+                            Text(
+                                when (theme) {
+                                    AppTheme.SYSTEM -> "System"
+                                    AppTheme.LIGHT -> "Light"
+                                    AppTheme.DARK -> "Dark"
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FiltersSection(viewModel: SettingsViewModel) {
-
     var expanded by remember { mutableStateOf(false) }
     val selectedFilters = viewModel.selectedFilters.value
 
     Column(modifier = Modifier.fillMaxWidth()) {
-
-        // HEADER
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -62,12 +103,8 @@ fun FiltersSection(viewModel: SettingsViewModel) {
                 text = stringResource(id = R.string.filters),
                 style = MaterialTheme.typography.titleMedium
             )
-
             Icon(
-                imageVector = if (expanded)
-                    Icons.Default.KeyboardArrowUp
-                else
-                    Icons.Default.KeyboardArrowDown,
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = null
             )
         }
@@ -90,17 +127,14 @@ fun FiltersSection(viewModel: SettingsViewModel) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LocationSection(viewModel: SettingsViewModel) {
-
     var expanded by remember { mutableStateOf(false) }
-
     val selectedMode = viewModel.locationMode.value
     val radius = viewModel.radiusKm.value
 
     Column(modifier = Modifier.fillMaxWidth()) {
-
-        // HEADER
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -109,33 +143,17 @@ fun LocationSection(viewModel: SettingsViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = stringResource(id = R.string.location), style = MaterialTheme.typography.titleMedium)
-
             Icon(
-                imageVector = if (expanded)
-                    Icons.Default.KeyboardArrowUp
-                else
-                    Icons.Default.KeyboardArrowDown,
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = null
             )
         }
 
         AnimatedVisibility(visible = expanded) {
-
             Column {
-
-                val modes = remember {
-                    listOf(
-                        LocationMode.LOCAL,
-                        LocationMode.NATIONAL,
-                        LocationMode.GLOBAL
-                    )
-                }
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                val modes = remember { listOf(LocationMode.LOCAL, LocationMode.NATIONAL, LocationMode.GLOBAL) }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     modes.forEach { mode ->
-
                         FilterChip(
                             selected = selectedMode == mode,
                             onClick = { viewModel.setLocationMode(mode) },
@@ -156,7 +174,6 @@ fun LocationSection(viewModel: SettingsViewModel) {
 
                 if (selectedMode == LocationMode.LOCAL) {
                     Text("Radius: ${radius.toInt()} km")
-
                     Slider(
                         value = radius,
                         onValueChange = { viewModel.setRadius(it) },

@@ -121,6 +121,10 @@ class UserViewModel : ViewModel() {
     fun getSavedArticles(onResult: (List<String>) -> Unit) {
         val userId = getCurrentUserId()
 
+        if (userId.isBlank()) {
+            return
+        }
+
         db.collection("users")
             .document(userId)
             .collection("saved_articles")
