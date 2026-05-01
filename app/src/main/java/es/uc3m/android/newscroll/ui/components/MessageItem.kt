@@ -9,12 +9,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import es.uc3m.android.newscroll.viewmodel.Message
 import es.uc3m.android.newscroll.model.NewsArticle
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
+import android.content.Intent
+import androidx.compose.ui.graphics.Brush
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Share
 
 @Composable
 fun MessageItem(
     message: Message,
     isMe: Boolean,
-    article: NewsArticle? = null
+    article: NewsArticle? = null,
+    isSaved: Boolean = false, // 👈 estado externo (Firebase)
+    onToggleSaved: () -> Unit = {} // 👈 acción externa
 ) {
 
     Row(
@@ -29,53 +43,162 @@ fun MessageItem(
 
         when (message.type) {
 
-            // 🔹 MENSAJE DE TEXTO
+            // 🔹 TEXTO
             "text" -> {
 
                 Surface(
                     color = if (isMe)
                         MaterialTheme.colorScheme.primary
                     else
-                        Color.LightGray,
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier
-                        .widthIn(max = 280.dp) // 🔥 límite tipo WhatsApp
+                        MaterialTheme.colorScheme.surfaceVariant,
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = if (isMe) 2.dp else 0.dp,
+                    modifier = Modifier.widthIn(max = 280.dp)
                 ) {
                     Text(
                         text = message.text ?: "",
-                        modifier = Modifier.padding(10.dp),
-                        color = if (isMe) Color.White else Color.Black
+                        modifier = Modifier.padding(12.dp),
+                        color = if (isMe)
+                            Color.White
+                        else
+                            MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
-            // 🔹 MENSAJE DE NOTICIA
+            // 🔹 ARTÍCULO (MISMO PATRÓN QUE FEED)
             "article" -> {
 
                 if (article != null) {
 
-                    Box(
-                        modifier = Modifier
-                            .width(260.dp) // 🔥 tamaño controlado
-                    ) {
-                        SavedItem(
-                            article = article,
-                            onToggleSaved = {} // no aplica en chat
-                        )
-                    }
+                    val context = LocalContext.current
 
-                } else {
-                    // 🔴 fallback si no se encuentra el artículo
-                    Surface(
-                        color = Color.Gray,
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.widthIn(max = 250.dp)
+                    Card(
+                        modifier = Modifier.width(260.dp),
+                        shape = MaterialTheme.shapes.medium
                     ) {
-                        Text(
-                            text = "Artículo no disponible",
-                            modifier = Modifier.padding(10.dp),
-                            color = Color.White
-                        )
+
+                        Box {
+
+                            // 🔹 IMAGEN
+                            Image(
+                                painter = rememberAsyncImagePainter(article.imageUrl),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(160.dp)
+                            )
+
+                            // 🔹 OVERLAY
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                Color.Black.copy(alpha = 0.7f)
+                                            ),
+                                            startY = 200f
+                                        )
+                                    )
+                            )
+
+                            // 🔹 CONTENIDO
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(12.dp)
+                            ) {
+
+                                Text(
+                                    text = article.title,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    maxLines = 2
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+
+                                    // 🔹 READ FULL ARTICLE
+                                    Button(
+                                        onClick = {
+                                            val url = article.articleUrl
+                                            if (url.isNotBlank()) {
+                                                try {
+                                                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                                                    context.startActivity(intent)
+                                                } catch (_: Exception) {}
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.White.copy(alpha = 0.9f)
+                                        ),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Text("Read Full Article", color = Color.Black)
+                                    }
+
+                                    // 🔹 SHARE + LIKE (IGUAL QUE FEED)
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+
+                                        // SHARE
+                                        IconButton(
+                                            onClick = {
+                                                val url = article.articleUrl
+                                                if (url.isNotBlank()) {
+                                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                                        type = "text/plain"
+                                                        putExtra(Intent.EXTRA_TEXT, url)
+                                                    }
+                                                    context.startActivity(
+                                                        Intent.createChooser(shareIntent, "Share via")
+                                                    )
+                                                }
+                                            },
+                                            colors = IconButtonDefaults.iconButtonColors(
+                                                containerColor = Color.Black.copy(alpha = 0.3f)
+                                            ),
+                                            modifier = Modifier.size(40.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Share,
+                                                contentDescription = "Share",
+                                                tint = Color.White
+                                            )
+                                        }
+
+                                        // LIKE
+                                        IconButton(
+                                            onClick = onToggleSaved,
+                                            colors = IconButtonDefaults.iconButtonColors(
+                                                containerColor = Color.Black.copy(alpha = 0.3f)
+                                            ),
+                                            modifier = Modifier.size(40.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isSaved)
+                                                    Icons.Filled.Favorite
+                                                else
+                                                    Icons.Outlined.FavoriteBorder,
+                                                contentDescription = "Save",
+                                                tint = if (isSaved) Color.Red else Color.LightGray
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

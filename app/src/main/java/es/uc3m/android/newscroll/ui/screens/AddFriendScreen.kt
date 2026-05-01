@@ -13,7 +13,11 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
-
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import es.uc3m.android.newscroll.R
 @Composable
 fun AddFriendScreen(userViewModel: UserViewModel) {
 
@@ -25,7 +29,6 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
 
-    // cargar solicitudes
     LaunchedEffect(Unit) {
         userViewModel.getFriendRequests {
             requests = it
@@ -35,52 +38,90 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
 
-        // TU USER ID
-        Text("Tu userId:")
+        // 🔹 HEADER
+        Text(
+            text = "Añadir amigos",
+            style = MaterialTheme.typography.headlineSmall
+        )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+        // 🔹 CARD: USER ID
+        Card(
+            shape = MaterialTheme.shapes.medium,
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(userId)
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
 
-            TextButton(
-                onClick = {
-                    if (userId.isNotEmpty()) {
-                        clipboard.setText(AnnotatedString(userId))
-                        Toast.makeText(context, "ID copiado", Toast.LENGTH_SHORT).show()
+                Text(
+                    text = "Tu ID",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = userId,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    IconButton(
+                        onClick = {
+                            if (userId.isNotEmpty()) {
+                                clipboard.setText(AnnotatedString(userId))
+                                Toast.makeText(context, "ID copiado", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.copy),
+                            contentDescription = "Copiar ID",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-            ) {
-                Text("Copiar")
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
+        // 🔹 INPUT SECTION
         Text(
             text = "Añadir amigo",
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.titleMedium
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // INPUT
         OutlinedTextField(
             value = userIdInput,
             onValueChange = { userIdInput = it },
-            label = { Text("ID del usuario") },
-            modifier = Modifier.fillMaxWidth()
+            placeholder = { Text("Introduce un ID") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // BOTÓN ENVIAR
         Button(
             onClick = {
                 if (userIdInput.isNotBlank()) {
@@ -88,28 +129,37 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                     userIdInput = ""
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp), // botón más sólido
+            shape = MaterialTheme.shapes.medium
         ) {
             Text("Enviar solicitud")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
+        // 🔹 REQUESTS SECTION
         Text(
-            text = "Solicitudes de amistad",
+            text = "Solicitudes",
             style = MaterialTheme.typography.titleMedium
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // LISTA SOLICITUDES
         if (requests.isEmpty()) {
 
-            Text("No hay solicitudes pendientes")
+            Text(
+                text = "No hay solicitudes pendientes",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
         } else {
 
-            LazyColumn {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 items(requests) { request ->
 
                     FriendRequestItem(
@@ -120,7 +170,6 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                                 request.fromUserId
                             )
 
-                            // recargar después de aceptar
                             userViewModel.getFriendRequests {
                                 requests = it
                             }

@@ -3,6 +3,7 @@ package es.uc3m.android.newscroll.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -29,12 +30,11 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ThemeSection(viewModel)
-        Spacer(modifier = Modifier.height(12.dp))
         FiltersSection(viewModel)
-        Spacer(modifier = Modifier.height(12.dp))
         LocationSection(viewModel)
     }
 }
@@ -42,43 +42,61 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ThemeSection(viewModel: SettingsViewModel) {
+
     var expanded by remember { mutableStateOf(false) }
     val selectedTheme = viewModel.appTheme.value
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = "App Theme", style = MaterialTheme.typography.titleMedium)
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = null
-            )
-        }
+    Card(shape = RoundedCornerShape(16.dp)) {
 
-        AnimatedVisibility(visible = expanded) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val themes = listOf(AppTheme.SYSTEM, AppTheme.LIGHT, AppTheme.DARK)
-                themes.forEach { theme ->
-                    FilterChip(
-                        selected = selectedTheme == theme,
-                        onClick = { viewModel.setTheme(theme) },
-                        label = {
-                            Text(
-                                when (theme) {
-                                    AppTheme.SYSTEM -> "System"
-                                    AppTheme.LIGHT -> "Light"
-                                    AppTheme.DARK -> "Dark"
-                                }
+                Text("App Theme", style = MaterialTheme.typography.titleMedium)
+
+                Icon(
+                    imageVector = if (expanded)
+                        Icons.Default.KeyboardArrowUp
+                    else
+                        Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                        listOf(AppTheme.SYSTEM, AppTheme.LIGHT, AppTheme.DARK).forEach { theme ->
+
+                            FilterChip(
+                                selected = selectedTheme == theme,
+                                onClick = { viewModel.setTheme(theme) },
+                                label = {
+                                    Text(
+                                        when (theme) {
+                                            AppTheme.SYSTEM -> "System"
+                                            AppTheme.LIGHT -> "Light"
+                                            AppTheme.DARK -> "Dark"
+                                        }
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                         }
-                    )
+                    }
                 }
             }
         }
@@ -88,39 +106,56 @@ fun ThemeSection(viewModel: SettingsViewModel) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FiltersSection(viewModel: SettingsViewModel) {
+
     var expanded by remember { mutableStateOf(false) }
     val selectedFilters = viewModel.selectedFilters.value
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = stringResource(id = R.string.filters),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = null
-            )
-        }
+    Card(shape = RoundedCornerShape(16.dp)) {
 
-        AnimatedVisibility(visible = expanded) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                filterOptions.forEach { filter ->
-                    FilterChip(
-                        selected = selectedFilters.contains(filter),
-                        onClick = { viewModel.toggleFilter(filter) },
-                        label = { Text(filter) }
-                    )
+                Text(stringResource(id = R.string.filters), style = MaterialTheme.typography.titleMedium)
+
+                Icon(
+                    imageVector = if (expanded)
+                        Icons.Default.KeyboardArrowUp
+                    else
+                        Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        filterOptions.forEach { filter ->
+
+                            FilterChip(
+                                selected = selectedFilters.contains(filter),
+                                onClick = { viewModel.toggleFilter(filter) },
+                                label = { Text(filter) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -130,55 +165,82 @@ fun FiltersSection(viewModel: SettingsViewModel) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LocationSection(viewModel: SettingsViewModel) {
+
     var expanded by remember { mutableStateOf(false) }
     val selectedMode = viewModel.locationMode.value
     val radius = viewModel.radiusKm.value
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = stringResource(id = R.string.location), style = MaterialTheme.typography.titleMedium)
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = null
-            )
-        }
+    Card(shape = RoundedCornerShape(16.dp)) {
 
-        AnimatedVisibility(visible = expanded) {
-            Column {
-                val modes = remember { listOf(LocationMode.LOCAL, LocationMode.NATIONAL, LocationMode.GLOBAL) }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    modes.forEach { mode ->
-                        FilterChip(
-                            selected = selectedMode == mode,
-                            onClick = { viewModel.setLocationMode(mode) },
-                            label = {
-                                Text(
-                                    when (mode) {
-                                        LocationMode.LOCAL -> "Local"
-                                        LocationMode.NATIONAL -> "National"
-                                        LocationMode.GLOBAL -> "Global"
-                                    }
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(stringResource(id = R.string.location), style = MaterialTheme.typography.titleMedium)
+
+                Icon(
+                    imageVector = if (expanded)
+                        Icons.Default.KeyboardArrowUp
+                    else
+                        Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+
+                Column {
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        listOf(
+                            LocationMode.LOCAL,
+                            LocationMode.NATIONAL,
+                            LocationMode.GLOBAL
+                        ).forEach { mode ->
+
+                            FilterChip(
+                                selected = selectedMode == mode,
+                                onClick = { viewModel.setLocationMode(mode) },
+                                label = {
+                                    Text(
+                                        when (mode) {
+                                            LocationMode.LOCAL -> "Local"
+                                            LocationMode.NATIONAL -> "National"
+                                            LocationMode.GLOBAL -> "Global"
+                                        }
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                            }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (selectedMode == LocationMode.LOCAL) {
+
+                        Text("Radius: ${radius.toInt()} km")
+
+                        Slider(
+                            value = radius,
+                            onValueChange = { viewModel.setRadius(it) },
+                            valueRange = 5f..500f
                         )
                     }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (selectedMode == LocationMode.LOCAL) {
-                    Text("Radius: ${radius.toInt()} km")
-                    Slider(
-                        value = radius,
-                        onValueChange = { viewModel.setRadius(it) },
-                        valueRange = 5f..500f
-                    )
                 }
             }
         }

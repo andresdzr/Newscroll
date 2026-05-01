@@ -8,10 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.viewmodel.ChatPreview
 import es.uc3m.android.newscroll.ui.components.ChatItem
+import es.uc3m.android.newscroll.R
 
 @Composable
 fun MessagesScreen(
@@ -19,10 +21,8 @@ fun MessagesScreen(
     navController: NavHostController
 ) {
 
-    // 🔹 SOLO chats (correcto)
     var chats by remember { mutableStateOf<List<ChatPreview>>(emptyList()) }
 
-    // 🔹 cargar chats
     LaunchedEffect(Unit) {
         userViewModel.getChats {
             chats = it
@@ -32,19 +32,21 @@ fun MessagesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp) // más aire lateral
     ) {
 
-        // 🔹 HEADER
+        // 🔹 HEADER REDISEÑADO
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Text(
                 text = "Mensajes",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineSmall // más controlado que Medium
             )
 
             IconButton(
@@ -52,32 +54,43 @@ fun MessagesScreen(
                     navController.navigate("add_friend")
                 }
             ) {
-                Text("+")
+                Icon(
+                    painter = painterResource(id = R.drawable.add_friend),
+                    contentDescription = "Añadir amigo"
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // 🔹 LISTA DE CHATS
+        // CONTENIDO
         if (chats.isEmpty()) {
 
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 40.dp),
+                contentAlignment = Alignment.TopCenter
             ) {
-                Text("No tienes chats")
+                Text(
+                    text = "No tienes chats",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
         } else {
 
-            LazyColumn {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp), // separación entre items
+                contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+            ) {
                 items(chats) { chat ->
 
                     ChatItem(
                         username = chat.username,
                         photoUrl = chat.photoUrl,
                         onClick = {
-                            // navegación
                             navController.navigate("chat/${chat.chatId}")
                         }
                     )

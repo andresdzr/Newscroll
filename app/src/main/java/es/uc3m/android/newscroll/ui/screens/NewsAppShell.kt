@@ -20,7 +20,8 @@ import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModelFactory
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppShell() {
@@ -150,8 +151,11 @@ fun NewsAppShell() {
                 TopAppBar(
                     title = {
                         Text(
-                            text = if (isLoggedIn && username.isNotBlank()) username
-                            else stringResource(id = R.string.app_name)
+                            text = "NEWSCROLL",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.2.sp
+                            )
                         )
                     },
                     navigationIcon = {

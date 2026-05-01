@@ -12,6 +12,12 @@ import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.viewmodel.Message
 import es.uc3m.android.newscroll.ui.components.MessageItem
 import es.uc3m.android.newscroll.data.NewsRepository
+import androidx.compose.ui.res.painterResource
+import es.uc3m.android.newscroll.R
+import coil.compose.AsyncImage
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun ChatScreen(
@@ -24,31 +30,77 @@ fun ChatScreen(
     var messages by remember { mutableStateOf<List<Message>>(emptyList()) }
     var input by remember { mutableStateOf("") }
 
-    // 🔹 escuchar mensajes en tiempo real
+    // 🔹 mensajes realtime
     LaunchedEffect(chatId) {
         userViewModel.listenMessages(chatId) {
             messages = it
         }
     }
 
+    // 🔹 info del chat (username + foto)
+    var chatUserName by remember { mutableStateOf("") }
+    var chatPhotoUrl by remember { mutableStateOf("") }
+
+    LaunchedEffect(chatId) {
+        userViewModel.getChats { chats ->
+            val chat = chats.find { it.chatId == chatId }
+            if (chat != null) {
+                chatUserName = chat.username
+                chatPhotoUrl = chat.photoUrl
+            }
+        }
+    }
+
+    // 🔹 saved articles (Firebase)
+    var savedArticles by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        userViewModel.getSavedArticles {
+            savedArticles = it
+        }
+    }
+
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(12.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
 
-        Text(
-            text = "Chat",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        // 🔹 TOP BAR
+        Surface(
+            tonalElevation = 2.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
-        Spacer(modifier = Modifier.height(8.dp))
+                AsyncImage(
+                    model = if (chatPhotoUrl.isNotEmpty()) chatPhotoUrl else "https://via.placeholder.com/150",
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    text = if (chatUserName.isNotEmpty()) chatUserName else "Cargando...",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+        }
 
         // 🔹 MENSAJES
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 12.dp)
         ) {
 
             items(messages) { msg ->
@@ -59,40 +111,65 @@ fun ChatScreen(
                     NewsRepository.articles.find { it.id == msg.articleId }
                 } else null
 
+                val isSaved = article?.id in savedArticles
+
                 MessageItem(
                     message = msg,
                     isMe = isMe,
-                    article = article
+                    article = article,
+                    isSaved = isSaved,
+                    onToggleSaved = {
+                        article?.let {
+                            if (isSaved) {
+                                userViewModel.removeArticle(it.id)
+                            } else {
+                                userViewModel.saveArticle(it.id)
+                            }
+
+                            // 🔹 refrescar saved
+                            userViewModel.getSavedArticles {
+                                savedArticles = it
+                            }
+                        }
+                    }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         // 🔹 INPUT
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            tonalElevation = 3.dp
         ) {
-
-            OutlinedTextField(
-                value = input,
-                onValueChange = { input = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Escribe un mensaje...") }
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = {
-                    if (input.isNotBlank()) {
-                        userViewModel.sendTextMessage(chatId, input)
-                        input = ""
-                    }
-                }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Enviar")
+
+                OutlinedTextField(
+                    value = input,
+                    onValueChange = { input = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Escribe un mensaje...") },
+                    shape = MaterialTheme.shapes.large
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                IconButton(
+                    onClick = {
+                        if (input.isNotBlank()) {
+                            userViewModel.sendTextMessage(chatId, input)
+                            input = ""
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_send),
+                        contentDescription = "Enviar"
+                    )
+                }
             }
         }
     }
