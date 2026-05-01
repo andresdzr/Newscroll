@@ -2,17 +2,28 @@ package es.uc3m.android.newscroll.ui.screens
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.model.NewsArticle
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.viewmodel.ChatPreview
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.Icons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,12 +32,12 @@ fun ShareBottomSheet(
     userViewModel: UserViewModel,
     onDismiss: () -> Unit
 ) {
+
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
 
     var chats by remember { mutableStateOf<List<ChatPreview>>(emptyList()) }
 
-    // 🔹 Cargar chats reales
     LaunchedEffect(Unit) {
         userViewModel.getChats {
             chats = it
@@ -34,80 +45,156 @@ fun ShareBottomSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
+
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
 
-            // 🔹 Copiar enlace
-            Button(
-                onClick = {
-                    clipboard.setText(AnnotatedString(article.articleUrl))
-                    Toast.makeText(context, "Link copiado", Toast.LENGTH_SHORT).show()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Copiar enlace")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 🔹 Compartir fuera de la app
-            Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, article.articleUrl)
-                    }
-
-                    context.startActivity(
-                        Intent.createChooser(intent, "Compartir noticia")
-                    )
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Compartir fuera de la app")
-            }
+            // 🔹 HEADER
+            Text(
+                text = "Compartir",
+                style = MaterialTheme.typography.titleLarge
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Enviar a chats
-            Text(
-                text = "Enviar a:",
-                style = MaterialTheme.typography.titleMedium
-            )
+            // 🔹 ACTIONS (COPY + SHARE)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
 
-            Spacer(modifier = Modifier.height(8.dp))
+                // COPY
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            clipboard.setText(AnnotatedString(article.articleUrl))
+                            Toast.makeText(context, "Link copiado", Toast.LENGTH_SHORT).show()
+                        }
+                ) {
 
-            if (chats.isEmpty()) {
-                Text("No hay chats recientes")
-            } else {
-
-                chats.take(3).forEach { chat ->
-
-                    Button(
-                        onClick = {
-                            userViewModel.sendArticleMessage(chat.chatId, article.id)
-
-                            Toast.makeText(
-                                context,
-                                "Enviado a ${chat.username}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            onDismiss()
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                    Surface(
+                        shape = CircleShape,
+                        tonalElevation = 2.dp,
+                        modifier = Modifier.size(56.dp)
                     ) {
-                        Text(chat.username)
+                        Icon(
+                            painter = painterResource(id = R.drawable.copy),
+                            contentDescription = "Copy",
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text("Copiar")
+                }
+
+                // SHARE EXTERNAL
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, article.articleUrl)
+                            }
+
+                            context.startActivity(
+                                Intent.createChooser(intent, "Compartir noticia")
+                            )
+                        }
+                ) {
+
+                    Surface(
+                        shape = CircleShape,
+                        tonalElevation = 2.dp,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Share",
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text("Compartir")
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 🔹 CHATS TITLE
+            Text(
+                text = "Enviar a",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (chats.isEmpty()) {
+
+                Text(
+                    text = "No hay chats recientes",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+            } else {
+
+                chats.take(6).forEach { chat ->
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+
+                                userViewModel.sendArticleMessage(chat.chatId, article.id)
+
+                                Toast.makeText(
+                                    context,
+                                    "Enviado a ${chat.username}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                                onDismiss()
+                            }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        // 🔹 FOTO
+                        AsyncImage(
+                            model = (if (chat.photoUrl.isNotEmpty()) chat.photoUrl
+                                    else
+                                        "https://via.placeholder.com/150"),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        // 🔹 USERNAME
+                        Text(
+                            text = chat.username,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }

@@ -10,6 +10,17 @@ import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.data.NewsRepository
 import es.uc3m.android.newscroll.model.NewsArticle
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.platform.LocalContext
+
+import android.location.Location
+import android.location.LocationManager
+import android.util.Log
+import kotlinx.coroutines.*
 
 @Composable
 fun NewsFeedScreen(
@@ -21,19 +32,54 @@ fun NewsFeedScreen(
     val savedIds by viewModel.savedArticles
     val articles = remember { NewsRepository.articles }
 
-    // 🔹 estado share
+    //  estado share
     var selectedArticle by remember { mutableStateOf<NewsArticle?>(null) }
 
     val showShareSheet = selectedArticle != null
 
-    // 🔹 cargar saved articles
+    val context = LocalContext.current
+    val location by viewModel.userLocation.collectAsState()
+
+    var hasPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPermission = granted
+        if (granted) {
+            viewModel.startLocationUpdates()
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.loadSavedArticlesFromFirebase(userViewModel)
+
+        if (!hasPermission) {
+            launcher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        } else {
+            viewModel.startLocationUpdates()
+        }
     }
 
     val pagerState = rememberPagerState(
         pageCount = { articles.size }
     )
+
+    LaunchedEffect(location) {
+        if (location != null) {
+            Log.d("LOCATION_DEBUG", "UI: ${location!!.latitude}, ${location!!.longitude}")
+        } else {
+            Log.d("LOCATION_DEBUG", "UI: location = null")
+        }
+    }
+
 
     VerticalPager(
         state = pagerState,
