@@ -58,14 +58,16 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.rules)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    testImplementation(libs.mockk.v1138)
 
     implementation(libs.coil.compose) // Used for image loading
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation("androidx.compose.material:material-icons-extended:1.6.0")
-    implementation("com.google.firebase:firebase-storage")
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.google.firebase.storage)
 }
