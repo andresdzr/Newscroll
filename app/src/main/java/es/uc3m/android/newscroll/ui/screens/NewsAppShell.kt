@@ -22,30 +22,36 @@ import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppShell() {
+
+    // Drawer, navigation and coroutine scope
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // Initialize ViewModels
+    // ViewModels initialization
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(context)
     )
     val newsViewModel: NewsViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
 
+    // User state
     val username = userViewModel.displayName.value
     val isLoggedIn = userViewModel.isLoggedIn.value
 
+    // Load profile when user logs in
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             userViewModel.loadUserProfile()
         }
     }
 
+    // Helper function to navigate and close drawer
     val navigateToMenuScreen: (String) -> Unit = { route ->
         navController.navigate(route) {
             launchSingleTop = true
@@ -54,10 +60,13 @@ fun NewsAppShell() {
         scope.launch { drawerState.close() }
     }
 
+    // Navigation drawer container
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+
+                // Close drawer button
                 IconButton(
                     onClick = { scope.launch { drawerState.close() } },
                     modifier = Modifier.padding(8.dp)
@@ -68,6 +77,7 @@ fun NewsAppShell() {
                     )
                 }
 
+                // User name or app title
                 Text(
                     text = if (isLoggedIn && username.isNotBlank()) username else "Newscroll",
                     style = MaterialTheme.typography.headlineMedium,
@@ -76,6 +86,7 @@ fun NewsAppShell() {
 
                 HorizontalDivider()
 
+                // Feed navigation
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text("Feed") },
@@ -83,6 +94,7 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("feed") }
                 )
 
+                // Settings navigation
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                     label = { Text(stringResource(id = R.string.user_preferences)) },
@@ -90,6 +102,7 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("settings") }
                 )
 
+                // Saved articles (only if logged in)
                 if (isLoggedIn) {
                     NavigationDrawerItem(
                         icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
@@ -99,6 +112,7 @@ fun NewsAppShell() {
                     )
                 }
 
+                // Profile settings
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
                     label = { Text(stringResource(id = R.string.profile_settings)) },
@@ -106,6 +120,7 @@ fun NewsAppShell() {
                     onClick = { navigateToMenuScreen("profile") }
                 )
 
+                // Messages (only if logged in)
                 if (isLoggedIn) {
                     NavigationDrawerItem(
                         icon = { Icon(Icons.Default.Email, contentDescription = null) },
@@ -117,6 +132,7 @@ fun NewsAppShell() {
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                // Login / logout action
                 NavigationDrawerItem(
                     icon = {
                         Icon(
@@ -146,6 +162,8 @@ fun NewsAppShell() {
             }
         }
     ) {
+
+        // Main scaffold with top app bar
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -170,20 +188,48 @@ fun NewsAppShell() {
                 )
             }
         ) { paddingValues ->
+
+            // Navigation host for all screens
             NavHost(
                 navController = navController,
                 startDestination = "feed",
                 modifier = Modifier.padding(paddingValues)
             ) {
-                composable("feed") { NewsFeedScreen(Modifier, newsViewModel, userViewModel) }
-                composable("saved") {
-                    if (userViewModel.isLoggedIn.value) SavedScreen(newsViewModel, userViewModel)
-                    else AuthScreen(userViewModel)
+
+                // Feed screen
+                composable("feed") {
+                    NewsFeedScreen(Modifier, newsViewModel, userViewModel)
                 }
-                composable("settings") { SettingsScreen(settingsViewModel) }
-                composable("profile") { ProfileSettingsScreen(userViewModel) }
-                composable("messages") { MessagesScreen(userViewModel, navController) }
-                composable("add_friend") { AddFriendScreen(userViewModel) }
+
+                // Saved articles (requires login)
+                composable("saved") {
+                    if (userViewModel.isLoggedIn.value)
+                        SavedScreen(newsViewModel, userViewModel)
+                    else
+                        AuthScreen(userViewModel)
+                }
+
+                // Settings screen
+                composable("settings") {
+                    SettingsScreen(settingsViewModel)
+                }
+
+                // Profile screen
+                composable("profile") {
+                    ProfileSettingsScreen(userViewModel)
+                }
+
+                // Messages screen
+                composable("messages") {
+                    MessagesScreen(userViewModel, navController)
+                }
+
+                // Add friend screen
+                composable("add_friend") {
+                    AddFriendScreen(userViewModel)
+                }
+
+                // Chat screen with dynamic chatId
                 composable("chat/{chatId}") { backStackEntry ->
                     val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
                     ChatScreen(userViewModel = userViewModel, chatId = chatId)

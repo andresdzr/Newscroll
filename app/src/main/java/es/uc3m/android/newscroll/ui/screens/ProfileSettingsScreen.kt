@@ -21,8 +21,10 @@ import es.uc3m.android.newscroll.R
 @Composable
 fun ProfileSettingsScreen(userViewModel: UserViewModel) {
 
+    // Check authentication state
     val isLoggedIn = userViewModel.isLoggedIn.value
 
+    // Show profile or auth screen depending on login state
     if (isLoggedIn) {
         ProfileView(userViewModel)
     } else {
@@ -33,21 +35,26 @@ fun ProfileSettingsScreen(userViewModel: UserViewModel) {
 @Composable
 fun ProfileView(userViewModel: UserViewModel) {
 
+    // Reactive user data
     val username by userViewModel.displayName
     val photoUrl by userViewModel.photoUrl
 
+    // Local editable username state
     var newName by remember { mutableStateOf("") }
 
+    // Sync input field with current username
     LaunchedEffect(username) {
         newName = username
     }
 
+    // Reload profile when user logs in
     LaunchedEffect(userViewModel.isLoggedIn.value) {
         if (userViewModel.isLoggedIn.value) {
             userViewModel.loadUserProfile()
         }
     }
 
+    // Image picker launcher for profile photo
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -62,12 +69,13 @@ fun ProfileView(userViewModel: UserViewModel) {
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
 
-        // 🔹 HEADER (AVATAR + NAME)
+        // Header with avatar and username
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            // Show default avatar if no photo exists
             if (photoUrl.isNullOrEmpty()) {
                 Image(
                     painter = painterResource(id = R.drawable.default_avatar),
@@ -88,6 +96,7 @@ fun ProfileView(userViewModel: UserViewModel) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Display username
             Text(
                 text = username,
                 style = MaterialTheme.typography.titleLarge
@@ -96,7 +105,7 @@ fun ProfileView(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // 🔹 CARD PERFIL
+        // Profile editing card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -114,6 +123,7 @@ fun ProfileView(userViewModel: UserViewModel) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Username input field
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
@@ -124,6 +134,7 @@ fun ProfileView(userViewModel: UserViewModel) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Save updated username
                 Button(
                     onClick = {
                         userViewModel.updateUsername(newName)
@@ -138,7 +149,7 @@ fun ProfileView(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 🔹 CARD ACCIONES
+        // Actions card (photo + logout)
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -149,6 +160,7 @@ fun ProfileView(userViewModel: UserViewModel) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
+                // Open image picker to change profile picture
                 Button(
                     onClick = {
                         imagePickerLauncher.launch("image/*")
@@ -159,6 +171,7 @@ fun ProfileView(userViewModel: UserViewModel) {
                     Text("Cambiar foto")
                 }
 
+                // Logout action
                 OutlinedButton(
                     onClick = { userViewModel.logout() },
                     modifier = Modifier.fillMaxWidth(),

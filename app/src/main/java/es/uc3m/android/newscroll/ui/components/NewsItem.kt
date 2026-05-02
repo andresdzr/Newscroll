@@ -38,7 +38,7 @@ fun NewsItem(
 
     Box(modifier = modifier.fillMaxSize()) {
 
-        // 🔹 Imagen de fondo
+        // Background image of the article
         Image(
             painter = rememberAsyncImagePainter(article.imageUrl),
             contentDescription = null,
@@ -46,7 +46,7 @@ fun NewsItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // 🔹 Gradiente
+        // Gradient overlay to improve text readability
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -58,13 +58,14 @@ fun NewsItem(
                 )
         )
 
-        // 🔹 Contenido
+        // Main content (title, description, actions)
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(16.dp)
         ) {
 
+            // Article title
             Text(
                 text = article.title,
                 style = MaterialTheme.typography.headlineLarge,
@@ -73,6 +74,7 @@ fun NewsItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Article description
             Text(
                 text = article.description,
                 style = MaterialTheme.typography.bodyLarge,
@@ -87,7 +89,7 @@ fun NewsItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // 🔹 Botón leer artículo
+                // Open article in external browser
                 Button(
                     onClick = {
                         val url = article.articleUrl
@@ -105,13 +107,13 @@ fun NewsItem(
                     Text(text = stringResource(R.string.read_full_article))
                 }
 
-                // 🔹 BOTONES DERECHA (SHARE + LIKE)
+                // Right side actions (share + save)
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // SHARE
+                    // Share action (opens bottom sheet)
                     IconButton(
                         onClick = { onShareClick() },
                         colors = IconButtonDefaults.iconButtonColors(
@@ -127,7 +129,7 @@ fun NewsItem(
                         )
                     }
 
-                    // LIKE
+                    // Save / unsave article
                     IconButton(
                         onClick = onToggleSaved,
                         colors = IconButtonDefaults.iconButtonColors(

@@ -21,8 +21,10 @@ fun MessagesScreen(
     navController: NavHostController
 ) {
 
+    // List of chats (preview data)
     var chats by remember { mutableStateOf<List<ChatPreview>>(emptyList()) }
 
+    // Load chats when screen is created
     LaunchedEffect(Unit) {
         userViewModel.getChats {
             chats = it
@@ -32,10 +34,10 @@ fun MessagesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp) // más aire lateral
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
 
-        // 🔹 HEADER REDISEÑADO
+        // Header with title and add friend button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -46,9 +48,10 @@ fun MessagesScreen(
 
             Text(
                 text = "Mensajes",
-                style = MaterialTheme.typography.headlineSmall // más controlado que Medium
+                style = MaterialTheme.typography.headlineSmall
             )
 
+            // Navigate to add friend screen
             IconButton(
                 onClick = {
                     navController.navigate("add_friend")
@@ -56,16 +59,17 @@ fun MessagesScreen(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.add_friend),
-                    contentDescription = "Añadir amigo"
+                    contentDescription = "Add friend"
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // CONTENIDO
+        // Main content
         if (chats.isEmpty()) {
 
+            // Empty state
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,8 +85,9 @@ fun MessagesScreen(
 
         } else {
 
+            // List of chat previews
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp), // separación entre items
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
             ) {
                 items(chats) { chat ->
@@ -91,6 +96,7 @@ fun MessagesScreen(
                         username = chat.username,
                         photoUrl = chat.photoUrl,
                         onClick = {
+                            // Navigate to chat screen
                             navController.navigate("chat/${chat.chatId}")
                         }
                     )

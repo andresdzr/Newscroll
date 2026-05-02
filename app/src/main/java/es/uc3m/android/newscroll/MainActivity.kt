@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
             )
 
             // 2. Observe the theme state dynamically.
-            // Because this is a Compose State, any change will trigger a recomposition of the whole app!
+            // Because this is a Compose State, any change will trigger a recomposition of the whole app
             val currentTheme = settingsViewModel.appTheme.value
 
             // 3. Determine if we should use dark mode based on the LIVE state

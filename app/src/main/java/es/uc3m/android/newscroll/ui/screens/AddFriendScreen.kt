@@ -18,17 +18,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import es.uc3m.android.newscroll.R
+
 @Composable
 fun AddFriendScreen(userViewModel: UserViewModel) {
 
+    // Current user ID
     val userId = userViewModel.getCurrentUserId()
 
+    // Input state and friend requests list
     var userIdInput by remember { mutableStateOf("") }
     var requests by remember { mutableStateOf<List<FriendRequest>>(emptyList()) }
 
+    // Clipboard and context for UI actions
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
 
+    // Load friend requests on screen start
     LaunchedEffect(Unit) {
         userViewModel.getFriendRequests {
             requests = it
@@ -41,7 +46,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
 
-        // 🔹 HEADER
+        // Screen title
         Text(
             text = "Añadir amigos",
             style = MaterialTheme.typography.headlineSmall
@@ -49,7 +54,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 🔹 CARD: USER ID
+        // Card displaying current user ID
         Card(
             shape = MaterialTheme.shapes.medium,
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -73,11 +78,13 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
+                    // Show user ID
                     Text(
                         text = userId,
                         style = MaterialTheme.typography.bodyLarge
                     )
 
+                    // Copy ID to clipboard
                     IconButton(
                         onClick = {
                             if (userId.isNotEmpty()) {
@@ -94,7 +101,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.copy),
-                            contentDescription = "Copiar ID",
+                            contentDescription = "Copy ID",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -104,7 +111,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 🔹 INPUT SECTION
+        // Input section title
         Text(
             text = "Añadir amigo",
             style = MaterialTheme.typography.titleMedium
@@ -112,6 +119,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Input field for friend ID
         OutlinedTextField(
             value = userIdInput,
             onValueChange = { userIdInput = it },
@@ -122,6 +130,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Send friend request button
         Button(
             onClick = {
                 if (userIdInput.isNotBlank()) {
@@ -131,7 +140,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp), // botón más sólido
+                .height(48.dp),
             shape = MaterialTheme.shapes.medium
         ) {
             Text("Enviar solicitud")
@@ -139,7 +148,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // 🔹 REQUESTS SECTION
+        // Requests section title
         Text(
             text = "Solicitudes",
             style = MaterialTheme.typography.titleMedium
@@ -149,6 +158,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         if (requests.isEmpty()) {
 
+            // Empty state
             Text(
                 text = "No hay solicitudes pendientes",
                 style = MaterialTheme.typography.bodyMedium,
@@ -157,6 +167,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         } else {
 
+            // List of incoming friend requests
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -170,6 +181,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                                 request.fromUserId
                             )
 
+                            // Refresh requests after accepting
                             userViewModel.getFriendRequests {
                                 requests = it
                             }
@@ -193,8 +205,10 @@ fun FriendRequestItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
+        // Request sender ID
         Text(userId)
 
+        // Accept request action
         Button(onClick = onAccept) {
             Text("Aceptar")
         }

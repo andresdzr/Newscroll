@@ -31,6 +31,7 @@ fun SavedItem(
 
     val context = LocalContext.current
 
+    // Card container for saved article preview
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,7 +42,7 @@ fun SavedItem(
 
         Box {
 
-            // 🔹 IMAGEN
+            // Background image of the article
             Image(
                 painter = rememberAsyncImagePainter(article.imageUrl),
                 contentDescription = null,
@@ -49,7 +50,7 @@ fun SavedItem(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 🔹 OVERLAY
+            // Gradient overlay to improve readability
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -64,14 +65,14 @@ fun SavedItem(
                     )
             )
 
-            // 🔹 CONTENIDO
+            // Bottom content (title + actions)
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(12.dp)
             ) {
 
-                // 🔹 TÍTULO
+                // Article title with background for contrast
                 Text(
                     text = article.title,
                     color = Color.White,
@@ -88,14 +89,14 @@ fun SavedItem(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 🔹 FILA INFERIOR (READ + SHARE + LIKE)
+                // Bottom row with actions
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // 🔹 READ FULL ARTICLE
+                    // Open article in external browser
                     Button(
                         onClick = {
                             val url = article.articleUrl
@@ -116,13 +117,13 @@ fun SavedItem(
                         Text("Read Full Article", color = Color.Black)
                     }
 
-                    // 🔹 SHARE + LIKE
+                    // Share and remove from saved actions
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
 
-                        // SHARE
+                        // Share article link
                         IconButton(
                             onClick = {
                                 val url = article.articleUrl
@@ -148,7 +149,7 @@ fun SavedItem(
                             )
                         }
 
-                        // LIKE (REMOVE FROM SAVED)
+                        // Remove article from saved list
                         IconButton(
                             onClick = onToggleSaved,
                             colors = IconButtonDefaults.iconButtonColors(

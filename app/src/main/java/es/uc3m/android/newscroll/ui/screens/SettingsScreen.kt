@@ -17,6 +17,7 @@ import es.uc3m.android.newscroll.viewmodel.AppTheme
 import es.uc3m.android.newscroll.viewmodel.LocationMode
 import es.uc3m.android.newscroll.viewmodel.SettingsViewModel
 
+// Available filter options
 val filterOptions = listOf(
     "Technology, ML & AI",
     "Finance & Investing",
@@ -27,6 +28,8 @@ val filterOptions = listOf(
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
+
+    // Main settings layout
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -43,13 +46,17 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 @Composable
 fun ThemeSection(viewModel: SettingsViewModel) {
 
+    // Expand/collapse state
     var expanded by remember { mutableStateOf(false) }
+
+    // Current selected theme
     val selectedTheme = viewModel.appTheme.value
 
     Card(shape = RoundedCornerShape(16.dp)) {
 
         Column(modifier = Modifier.padding(16.dp)) {
 
+            // Section header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -67,11 +74,13 @@ fun ThemeSection(viewModel: SettingsViewModel) {
                 )
             }
 
+            // Expandable content
             AnimatedVisibility(visible = expanded) {
 
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Theme selection chips
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
                         listOf(AppTheme.SYSTEM, AppTheme.LIGHT, AppTheme.DARK).forEach { theme ->
@@ -107,13 +116,17 @@ fun ThemeSection(viewModel: SettingsViewModel) {
 @Composable
 fun FiltersSection(viewModel: SettingsViewModel) {
 
+    // Expand/collapse state
     var expanded by remember { mutableStateOf(false) }
+
+    // Selected filters
     val selectedFilters = viewModel.selectedFilters.value
 
     Card(shape = RoundedCornerShape(16.dp)) {
 
         Column(modifier = Modifier.padding(16.dp)) {
 
+            // Section header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,11 +144,13 @@ fun FiltersSection(viewModel: SettingsViewModel) {
                 )
             }
 
+            // Expandable content
             AnimatedVisibility(visible = expanded) {
 
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Filter selection chips
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -166,7 +181,10 @@ fun FiltersSection(viewModel: SettingsViewModel) {
 @Composable
 fun LocationSection(viewModel: SettingsViewModel) {
 
+    // Expand/collapse state
     var expanded by remember { mutableStateOf(false) }
+
+    // Current location mode and radius
     val selectedMode = viewModel.locationMode.value
     val radius = viewModel.radiusKm.value
 
@@ -174,6 +192,7 @@ fun LocationSection(viewModel: SettingsViewModel) {
 
         Column(modifier = Modifier.padding(16.dp)) {
 
+            // Section header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -191,12 +210,14 @@ fun LocationSection(viewModel: SettingsViewModel) {
                 )
             }
 
+            // Expandable content
             AnimatedVisibility(visible = expanded) {
 
                 Column {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Location mode selection
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -231,6 +252,7 @@ fun LocationSection(viewModel: SettingsViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Radius slider (only for local mode)
                     if (selectedMode == LocationMode.LOCAL) {
 
                         Text("Radius: ${radius.toInt()} km")

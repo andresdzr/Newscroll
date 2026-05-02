@@ -11,14 +11,18 @@ import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
 
+    // Firebase authentication instance
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    // Current authenticated user (reactive state)
     private val _user = MutableStateFlow(auth.currentUser)
     val user: StateFlow<com.google.firebase.auth.FirebaseUser?> = _user.asStateFlow()
 
+    // Error messages for authentication operations
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    // Register a new user with email and password
     fun signUp(email: String, password: String) {
         viewModelScope.launch {
             try {
@@ -30,6 +34,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    // Log in an existing user
     fun login(email: String, password: String) {
         viewModelScope.launch {
             try {
@@ -41,6 +46,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    // Log out the current user
     fun logout() {
         auth.signOut()
         _user.value = null

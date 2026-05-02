@@ -33,17 +33,21 @@ fun ShareBottomSheet(
     onDismiss: () -> Unit
 ) {
 
+    // Context and clipboard for system actions
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
 
+    // List of user chats
     var chats by remember { mutableStateOf<List<ChatPreview>>(emptyList()) }
 
+    // Load chats when bottom sheet appears
     LaunchedEffect(Unit) {
         userViewModel.getChats {
             chats = it
         }
     }
 
+    // Modal bottom sheet container
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -55,7 +59,7 @@ fun ShareBottomSheet(
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
 
-            // 🔹 HEADER
+            // Header title
             Text(
                 text = "Compartir",
                 style = MaterialTheme.typography.titleLarge
@@ -63,12 +67,12 @@ fun ShareBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 ACTIONS (COPY + SHARE)
+            // Top actions (copy link + external share)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
-                // COPY
+                // Copy article URL to clipboard
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -96,7 +100,7 @@ fun ShareBottomSheet(
                     Text("Copiar")
                 }
 
-                // SHARE EXTERNAL
+                // Share article externally using Android intent
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -133,7 +137,7 @@ fun ShareBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔹 CHATS TITLE
+            // Section title for chat sharing
             Text(
                 text = "Enviar a",
                 style = MaterialTheme.typography.titleMedium
@@ -143,6 +147,7 @@ fun ShareBottomSheet(
 
             if (chats.isEmpty()) {
 
+                // Empty chat list state
                 Text(
                     text = "No hay chats recientes",
                     style = MaterialTheme.typography.bodyMedium
@@ -150,6 +155,7 @@ fun ShareBottomSheet(
 
             } else {
 
+                // Show up to 6 recent chats
                 chats.take(6).forEach { chat ->
 
                     Row(
@@ -157,6 +163,7 @@ fun ShareBottomSheet(
                             .fillMaxWidth()
                             .clickable {
 
+                                // Send article message to selected chat
                                 userViewModel.sendArticleMessage(chat.chatId, article.id)
 
                                 Toast.makeText(
@@ -171,11 +178,10 @@ fun ShareBottomSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
 
-                        // 🔹 FOTO
+                        // Chat user avatar
                         AsyncImage(
-                            model = (if (chat.photoUrl.isNotEmpty()) chat.photoUrl
-                                    else
-                                        "https://via.placeholder.com/150"),
+                            model = if (chat.photoUrl.isNotEmpty()) chat.photoUrl
+                            else "https://via.placeholder.com/150",
                             contentDescription = null,
                             modifier = Modifier
                                 .size(44.dp)
@@ -185,7 +191,7 @@ fun ShareBottomSheet(
 
                         Spacer(modifier = Modifier.width(12.dp))
 
-                        // 🔹 USERNAME
+                        // Chat username
                         Text(
                             text = chat.username,
                             style = MaterialTheme.typography.bodyLarge

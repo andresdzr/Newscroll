@@ -11,19 +11,24 @@ import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 import com.google.firebase.firestore.SetOptions
 
-// 🔹 MODELOS
+// =========================
+// DATA MODELS
+// =========================
 
+// Basic user preview for lists
 data class UserPreview(
     val id: String,
     val username: String,
     val photoUrl: String
 )
 
+// Friend request model
 data class FriendRequest(
     val id: String,
     val fromUserId: String
 )
 
+// Chat preview model (used in chat list)
 data class ChatPreview(
     val chatId: String,
     val otherUserId: String,
@@ -31,6 +36,7 @@ data class ChatPreview(
     val photoUrl: String
 )
 
+// Message model (text or article)
 data class Message(
     val senderId: String,
     val type: String,
@@ -40,27 +46,36 @@ data class Message(
 
 class UserViewModel : ViewModel() {
 
+    // Firebase services
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
+    // Auth state
     var isLoggedIn = mutableStateOf(auth.currentUser != null)
         private set
 
+    // User email (fallback identifier)
     var username = mutableStateOf(auth.currentUser?.email ?: "")
         private set
 
+    // Profile data
     var displayName = mutableStateOf("")
         private set
 
     var photoUrl = mutableStateOf<String?>(null)
         private set
 
+    // Returns current user ID or empty if not logged in
     fun getCurrentUserId(): String {
         return auth.currentUser?.uid ?: ""
     }
 
-    // 🔹 LOGIN
+    // =========================
+    // AUTHENTICATION
+    // =========================
+
+    // Login user with email/password
     fun login(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -74,7 +89,7 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    // 🔹 REGISTER
+    // Register new user and create Firestore profile
     fun register(email: String, password: String, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -102,13 +117,18 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    // Logout current user
     fun logout() {
         auth.signOut()
         isLoggedIn.value = false
         username.value = ""
     }
 
-    // 🔹 SAVED ARTICLES
+    // =========================
+    // SAVED ARTICLES
+    // =========================
+
+    // Save article to user collection
     fun saveArticle(articleId: String) {
         val userId = getCurrentUserId()
         db.collection("users")
@@ -118,12 +138,11 @@ class UserViewModel : ViewModel() {
             .set(mapOf("id" to articleId))
     }
 
+    // Retrieve saved article IDs
     fun getSavedArticles(onResult: (List<String>) -> Unit) {
         val userId = getCurrentUserId()
 
-        if (userId.isBlank()) {
-            return
-        }
+        if (userId.isBlank()) return
 
         db.collection("users")
             .document(userId)
@@ -134,6 +153,7 @@ class UserViewModel : ViewModel() {
             }
     }
 
+    // Remove article from saved list
     fun removeArticle(articleId: String) {
         val userId = getCurrentUserId()
         db.collection("users")
@@ -143,7 +163,11 @@ class UserViewModel : ViewModel() {
             .delete()
     }
 
-    // 🔹 PROFILE
+    // =========================
+    // PROFILE
+    // =========================
+
+    // Load user profile from Firestore
     fun loadUserProfile() {
         val userId = getCurrentUserId()
 
@@ -156,6 +180,7 @@ class UserViewModel : ViewModel() {
             }
     }
 
+    // Update username in Firestore
     fun updateUsername(newName: String) {
         val userId = getCurrentUserId()
 
@@ -166,6 +191,7 @@ class UserViewModel : ViewModel() {
         displayName.value = newName
     }
 
+    // Upload profile image to Firebase Storage
     fun uploadProfileImage(uri: Uri) {
         val userId = getCurrentUserId()
         val ref = storage.reference.child("profile_images/$userId.jpg")
@@ -181,7 +207,11 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    // 🔹 FRIEND REQUESTS
+    // =========================
+    // FRIEND REQUESTS
+    // =========================
+
+    // Send friend request to another user
     fun sendFriendRequest(toUserId: String) {
         val fromUserId = getCurrentUserId()
 
@@ -195,6 +225,7 @@ class UserViewModel : ViewModel() {
         )
     }
 
+    // Get pending friend requests
     fun getFriendRequests(onResult: (List<FriendRequest>) -> Unit) {
         val userId = getCurrentUserId()
 
@@ -210,6 +241,7 @@ class UserViewModel : ViewModel() {
             }
     }
 
+    // Accept friend request and create chat
     fun acceptFriendRequest(requestId: String, fromUserId: String) {
         val currentUserId = getCurrentUserId()
 
@@ -219,16 +251,20 @@ class UserViewModel : ViewModel() {
         val otherUserRef = db.collection("users").document(fromUserId)
         val requestRef = db.collection("friend_requests").document(requestId)
 
-        batch.set(currentUserRef,
+        // Add each user to the other's friend list
+        batch.set(
+            currentUserRef,
             mapOf("friends" to com.google.firebase.firestore.FieldValue.arrayUnion(fromUserId)),
             SetOptions.merge()
         )
 
-        batch.set(otherUserRef,
+        batch.set(
+            otherUserRef,
             mapOf("friends" to com.google.firebase.firestore.FieldValue.arrayUnion(currentUserId)),
             SetOptions.merge()
         )
 
+        // Mark request as accepted
         batch.update(requestRef, "status", "accepted")
 
         batch.commit().addOnSuccessListener {
@@ -236,7 +272,11 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    // 🔹 CHAT CREATION
+    // =========================
+    // CHAT MANAGEMENT
+    // =========================
+
+    // Create chat only if it does not already exist
     fun createChatIfNotExists(otherUserId: String) {
         val currentUserId = getCurrentUserId()
 
@@ -262,7 +302,7 @@ class UserViewModel : ViewModel() {
             }
     }
 
-    // 🔹 GET CHATS
+    // Retrieve chat previews with user info
     fun getChats(onResult: (List<ChatPreview>) -> Unit) {
         val currentUserId = getCurrentUserId()
 
@@ -305,7 +345,11 @@ class UserViewModel : ViewModel() {
             }
     }
 
-    // 🔹 SEND MESSAGE
+    // =========================
+    // MESSAGING
+    // =========================
+
+    // Send text message
     fun sendTextMessage(chatId: String, text: String) {
         val userId = getCurrentUserId()
 
@@ -322,6 +366,7 @@ class UserViewModel : ViewModel() {
             )
     }
 
+    // Send article message
     fun sendArticleMessage(chatId: String, articleId: String) {
         val userId = getCurrentUserId()
 
@@ -338,7 +383,11 @@ class UserViewModel : ViewModel() {
             )
     }
 
-    // 🔹 REALTIME LISTENER
+    // =========================
+    // REAL-TIME LISTENER
+    // =========================
+
+    // Listen to messages in real time
     fun listenMessages(chatId: String, onUpdate: (List<Message>) -> Unit) {
 
         db.collection("chats")

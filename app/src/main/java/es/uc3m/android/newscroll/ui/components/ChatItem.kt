@@ -23,22 +23,23 @@ fun ChatItem(
     onClick: () -> Unit
 ) {
 
+    // Custom interaction to remove default ripple effect
     val interactionSource = remember { MutableInteractionSource() }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium) // mejora sensación táctil
+            .clip(MaterialTheme.shapes.medium) // improves touch feedback
             .clickable(
                 interactionSource = interactionSource,
-                indication = null, // elimina ripple agresivo default
+                indication = null, // removes default ripple
                 onClick = onClick
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        // 🔹 AVATAR
+        // Avatar image (fallback if empty)
         AsyncImage(
             model = if (photoUrl.isNotEmpty()) photoUrl else "https://via.placeholder.com/150",
             contentDescription = null,
@@ -50,7 +51,7 @@ fun ChatItem(
 
         Spacer(modifier = Modifier.width(14.dp))
 
-        // 🔹 TEXTO
+        // Username and optional secondary info
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -60,11 +61,11 @@ fun ChatItem(
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            // preparado para futuro (último mensaje)
-            // Text("Último mensaje...", style = MaterialTheme.typography.bodySmall)
+            // Placeholder for future message preview
+            // Text("Last message...", style = MaterialTheme.typography.bodySmall)
         }
 
-        // INDICADOR SUTIL
+        // Small visual indicator (e.g., online or active)
         Box(
             modifier = Modifier
                 .size(6.dp)

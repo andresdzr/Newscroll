@@ -20,35 +20,44 @@ fun SavedScreen(
     userViewModel: UserViewModel
 ) {
 
+    // Reactive set of saved article IDs
     val savedIds by viewModel.savedArticles
+
+    // All available articles (local repository)
     val allArticles = NewsRepository.articles
 
-    // Cargar desde Firebase
+    // Load saved articles from Firebase on start
     LaunchedEffect(Unit) {
         viewModel.loadSavedArticlesFromFirebase(userViewModel)
     }
 
-    // Filtrar artículos guardados
+    // Filter only saved articles
     val savedArticles = remember(savedIds, allArticles) {
         allArticles.filter { savedIds.contains(it.id) }
     }
 
     if (savedArticles.isEmpty()) {
-        // Estado vacío
+
+        // Empty state
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(text = stringResource(R.string.no_saved_articles))
         }
+
     } else {
+
+        // List of saved articles
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
             items(savedArticles) { article ->
+
                 SavedItem(
                     article = article,
                     onToggleSaved = {
+                        // Toggle saved state in ViewModel
                         viewModel.toggleSaved(article.id, userViewModel)
                     },
                 )

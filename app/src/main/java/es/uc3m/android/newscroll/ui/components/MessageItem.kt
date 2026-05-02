@@ -27,8 +27,8 @@ fun MessageItem(
     message: Message,
     isMe: Boolean,
     article: NewsArticle? = null,
-    isSaved: Boolean = false, // 👈 estado externo (Firebase)
-    onToggleSaved: () -> Unit = {} // 👈 acción externa
+    isSaved: Boolean = false, // external saved state (Firebase)
+    onToggleSaved: () -> Unit = {} // external action handler
 ) {
 
     Row(
@@ -36,14 +36,14 @@ fun MessageItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalArrangement = if (isMe)
-            Arrangement.End
+            Arrangement.End // align right for current user
         else
-            Arrangement.Start
+            Arrangement.Start // align left for others
     ) {
 
         when (message.type) {
 
-            // 🔹 TEXTO
+            // Text message bubble
             "text" -> {
 
                 Surface(
@@ -66,7 +66,7 @@ fun MessageItem(
                 }
             }
 
-            // 🔹 ARTÍCULO (MISMO PATRÓN QUE FEED)
+            // Article preview (same pattern as feed)
             "article" -> {
 
                 if (article != null) {
@@ -80,7 +80,7 @@ fun MessageItem(
 
                         Box {
 
-                            // 🔹 IMAGEN
+                            // Article image
                             Image(
                                 painter = rememberAsyncImagePainter(article.imageUrl),
                                 contentDescription = null,
@@ -90,7 +90,7 @@ fun MessageItem(
                                     .height(160.dp)
                             )
 
-                            // 🔹 OVERLAY
+                            // Gradient overlay for readability
                             Box(
                                 modifier = Modifier
                                     .matchParentSize()
@@ -105,7 +105,7 @@ fun MessageItem(
                                     )
                             )
 
-                            // 🔹 CONTENIDO
+                            // Bottom content (title + actions)
                             Column(
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
@@ -127,7 +127,7 @@ fun MessageItem(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
 
-                                    // 🔹 READ FULL ARTICLE
+                                    // Open article in browser
                                     Button(
                                         onClick = {
                                             val url = article.articleUrl
@@ -146,13 +146,13 @@ fun MessageItem(
                                         Text("Read Full Article", color = Color.Black)
                                     }
 
-                                    // 🔹 SHARE + LIKE (IGUAL QUE FEED)
+                                    // Share and save actions
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
 
-                                        // SHARE
+                                        // Share article link
                                         IconButton(
                                             onClick = {
                                                 val url = article.articleUrl
@@ -178,7 +178,7 @@ fun MessageItem(
                                             )
                                         }
 
-                                        // LIKE
+                                        // Save / unsave article
                                         IconButton(
                                             onClick = onToggleSaved,
                                             colors = IconButtonDefaults.iconButtonColors(

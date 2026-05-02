@@ -17,11 +17,14 @@ fun LoginScreen(
     userViewModel: UserViewModel,
     onNavigateToRegister: () -> Unit
 ) {
+    // Input states
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    // Controls password visibility
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Error LOCAL (no en ViewModel)
+    // Local error state (not handled in ViewModel)
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -30,6 +33,8 @@ fun LoginScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
+
+        // Screen title
         Text(
             text = "Inicia sesión en Newscroll",
             style = MaterialTheme.typography.headlineMedium
@@ -37,11 +42,12 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Email input field
         OutlinedTextField(
             value = email,
             onValueChange = {
                 email = it
-                error = null // limpiar error al escribir
+                error = null // clear error on input change
             },
             label = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth()
@@ -49,11 +55,12 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Password input field with visibility toggle
         OutlinedTextField(
             value = password,
             onValueChange = {
                 password = it
-                error = null // limpiar error al escribir
+                error = null // clear error on input change
             },
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
@@ -77,7 +84,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ERROR
+        // Error message display
         if (error != null) {
             Text(
                 text = error!!,
@@ -86,11 +93,12 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // Login button
         Button(
             onClick = {
                 userViewModel.login(email, password) { errorMsg ->
                     error = errorMsg
-                    password = "" // limpiar contraseña SOLO cuando falla
+                    password = "" // clear password only on failure
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -100,6 +108,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Navigation to register screen
         Text("¿Todavía no tienes cuenta?")
 
         Spacer(modifier = Modifier.height(8.dp))

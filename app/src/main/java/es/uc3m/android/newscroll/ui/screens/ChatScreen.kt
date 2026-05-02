@@ -25,19 +25,21 @@ fun ChatScreen(
     chatId: String
 ) {
 
+    // Current logged user ID
     val currentUserId = userViewModel.getCurrentUserId()
 
+    // Messages state and input text
     var messages by remember { mutableStateOf<List<Message>>(emptyList()) }
     var input by remember { mutableStateOf("") }
 
-    // 🔹 mensajes realtime
+    // Listen to messages in real time
     LaunchedEffect(chatId) {
         userViewModel.listenMessages(chatId) {
             messages = it
         }
     }
 
-    // 🔹 info del chat (username + foto)
+    // Chat user info (name + profile image)
     var chatUserName by remember { mutableStateOf("") }
     var chatPhotoUrl by remember { mutableStateOf("") }
 
@@ -51,7 +53,7 @@ fun ChatScreen(
         }
     }
 
-    // 🔹 saved articles (Firebase)
+    // Saved articles (used for like state)
     var savedArticles by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -64,7 +66,7 @@ fun ChatScreen(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        // 🔹 TOP BAR
+        // Top bar with chat info
         Surface(
             tonalElevation = 2.dp
         ) {
@@ -75,6 +77,7 @@ fun ChatScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
+                // User avatar
                 AsyncImage(
                     model = if (chatPhotoUrl.isNotEmpty()) chatPhotoUrl else "https://via.placeholder.com/150",
                     contentDescription = null,
@@ -86,14 +89,15 @@ fun ChatScreen(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
+                // Username
                 Text(
-                    text = if (chatUserName.isNotEmpty()) chatUserName else "Cargando...",
+                    text = if (chatUserName.isNotEmpty()) chatUserName else "Loading...",
                     style = MaterialTheme.typography.titleMedium
                 )
             }
         }
 
-        // 🔹 MENSAJES
+        // Messages list
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -105,12 +109,15 @@ fun ChatScreen(
 
             items(messages) { msg ->
 
+                // Check if message is from current user
                 val isMe = msg.senderId == currentUserId
 
+                // Resolve article if message contains one
                 val article = if (msg.articleId != null) {
                     NewsRepository.articles.find { it.id == msg.articleId }
                 } else null
 
+                // Check if article is saved
                 val isSaved = article?.id in savedArticles
 
                 MessageItem(
@@ -126,7 +133,7 @@ fun ChatScreen(
                                 userViewModel.saveArticle(it.id)
                             }
 
-                            // 🔹 refrescar saved
+                            // Refresh saved articles state
                             userViewModel.getSavedArticles {
                                 savedArticles = it
                             }
@@ -136,7 +143,7 @@ fun ChatScreen(
             }
         }
 
-        // 🔹 INPUT
+        // Input area for sending messages
         Surface(
             tonalElevation = 3.dp
         ) {
@@ -147,16 +154,18 @@ fun ChatScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
+                // Message input field
                 OutlinedTextField(
                     value = input,
                     onValueChange = { input = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Escribe un mensaje...") },
+                    placeholder = { Text("Type a message...") },
                     shape = MaterialTheme.shapes.large
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // Send message button
                 IconButton(
                     onClick = {
                         if (input.isNotBlank()) {
@@ -167,7 +176,7 @@ fun ChatScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_send),
-                        contentDescription = "Enviar"
+                        contentDescription = "Send"
                     )
                 }
             }

@@ -17,10 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
 
-import android.location.Location
-import android.location.LocationManager
 import android.util.Log
-import kotlinx.coroutines.*
 
 @Composable
 fun NewsFeedScreen(
@@ -29,26 +26,31 @@ fun NewsFeedScreen(
     userViewModel: UserViewModel
 ) {
 
+    // Saved article IDs (reactive state)
     val savedIds by viewModel.savedArticles
+
+    // Static list of articles (in-memory repository)
     val articles = remember { NewsRepository.articles }
 
-    //  estado share
+    // Share bottom sheet state
     var selectedArticle by remember { mutableStateOf<NewsArticle?>(null) }
-
     val showShareSheet = selectedArticle != null
 
+    // Context and location state
     val context = LocalContext.current
     val location by viewModel.userLocation.collectAsState()
 
+    // Check if location permission is granted
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
 
+    // Launcher to request location permission
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -58,20 +60,23 @@ fun NewsFeedScreen(
         }
     }
 
+    // Initial setup: load saved articles and request location
     LaunchedEffect(Unit) {
         viewModel.loadSavedArticlesFromFirebase(userViewModel)
 
         if (!hasPermission) {
-            launcher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            launcher.launch(Manifest.permission.ACCESS_COARSE_LOCATION) // should match FINE permission
         } else {
             viewModel.startLocationUpdates()
         }
     }
 
+    // Pager state for vertical scrolling
     val pagerState = rememberPagerState(
         pageCount = { articles.size }
     )
 
+    // Debug location updates in UI layer
     LaunchedEffect(location) {
         if (location != null) {
             Log.d("LOCATION_DEBUG", "UI: ${location!!.latitude}, ${location!!.longitude}")
@@ -80,7 +85,7 @@ fun NewsFeedScreen(
         }
     }
 
-
+    // Main vertical feed (like TikTok style)
     VerticalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize()
@@ -101,11 +106,11 @@ fun NewsFeedScreen(
         )
     }
 
-    // SHARE SHEET
+    // Share bottom sheet
     if (showShareSheet) {
         ShareBottomSheet(
             article = selectedArticle!!,
-            userViewModel = userViewModel, // AÑADIR
+            userViewModel = userViewModel,
             onDismiss = {
                 selectedArticle = null
             }

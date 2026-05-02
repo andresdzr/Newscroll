@@ -17,14 +17,17 @@ fun RegisterScreen(
     userViewModel: UserViewModel,
     onBack: () -> Unit
 ) {
+
+    // Input states
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var repeatPassword by remember { mutableStateOf("") }
 
+    // Password visibility toggles
     var passwordVisible by remember { mutableStateOf(false) }
     var repeatPasswordVisible by remember { mutableStateOf(false) }
 
-    // Error LOCAL
+    // Local error state
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -34,6 +37,7 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
+        // Screen title
         Text(
             text = "Crear cuenta en Newscroll",
             style = MaterialTheme.typography.headlineMedium
@@ -41,11 +45,12 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Email input field
         OutlinedTextField(
             value = email,
             onValueChange = {
                 email = it
-                error = null
+                error = null // clear error on input change
             },
             label = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth()
@@ -53,7 +58,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // PASSWORD
+        // Password input field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -82,7 +87,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // REPEAT PASSWORD
+        // Repeat password input field
         OutlinedTextField(
             value = repeatPassword,
             onValueChange = {
@@ -111,6 +116,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Password requirements hint
         Text(
             text = "La contraseña debe tener al menos 6 caracteres",
             style = MaterialTheme.typography.bodySmall
@@ -118,7 +124,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ERROR
+        // Error message
         if (error != null) {
             Text(
                 text = error!!,
@@ -127,19 +133,25 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // Register button with validation
         Button(
             onClick = {
                 when {
+                    // Password mismatch validation
                     password != repeatPassword -> {
                         error = "Las contraseñas no coinciden"
                         password = ""
                         repeatPassword = ""
                     }
+
+                    // Minimum length validation
                     password.length < 6 -> {
                         error = "La contraseña debe tener al menos 6 caracteres"
                         password = ""
                         repeatPassword = ""
                     }
+
+                    // Register user
                     else -> {
                         userViewModel.register(email, password) { errorMsg ->
                             error = errorMsg
@@ -156,6 +168,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Navigate back to login
         TextButton(onClick = onBack) {
             Text("Volver")
         }
