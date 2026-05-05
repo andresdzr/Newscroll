@@ -9,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import es.uc3m.android.newscroll.R
-import es.uc3m.android.newscroll.data.NewsRepository
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.ui.components.SavedItem
@@ -23,8 +22,8 @@ fun SavedScreen(
     // Reactive set of saved article IDs
     val savedIds by viewModel.savedArticles
 
-    // All available articles (local repository)
-    val allArticles = NewsRepository.articles
+    // All available articles from the live feed
+    val allArticles by viewModel.articles.collectAsState()
 
     // Load saved articles from Firebase on start
     LaunchedEffect(Unit) {

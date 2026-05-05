@@ -8,10 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
+import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.viewmodel.Message
 import es.uc3m.android.newscroll.ui.components.MessageItem
-import es.uc3m.android.newscroll.data.NewsRepository
 import androidx.compose.ui.res.painterResource
 import es.uc3m.android.newscroll.R
 import coil.compose.AsyncImage
@@ -22,8 +22,10 @@ import androidx.compose.ui.layout.ContentScale
 @Composable
 fun ChatScreen(
     userViewModel: UserViewModel,
+    newsViewModel: NewsViewModel,
     chatId: String
 ) {
+    val feedArticles by newsViewModel.articles.collectAsState()
 
     // Current logged user ID
     val currentUserId = userViewModel.getCurrentUserId()
@@ -114,7 +116,7 @@ fun ChatScreen(
 
                 // Resolve article if message contains one
                 val article = if (msg.articleId != null) {
-                    NewsRepository.articles.find { it.id == msg.articleId }
+                    feedArticles.find { it.id == msg.articleId }
                 } else null
 
                 // Check if article is saved

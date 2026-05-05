@@ -51,6 +51,12 @@ fun NewsAppShell() {
         }
     }
 
+    // Fetch news on launch and whenever category filters change
+    val selectedFilters by settingsViewModel.selectedFilters
+    LaunchedEffect(selectedFilters) {
+        newsViewModel.fetchNews(selectedFilters)
+    }
+
     // Helper function to navigate and close drawer
     val navigateToMenuScreen: (String) -> Unit = { route ->
         navController.navigate(route) {
@@ -169,7 +175,7 @@ fun NewsAppShell() {
                 TopAppBar(
                     title = {
                         Text(
-                            text = "NEWSCROLL",
+                            text = "NEWSCROLLv4",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.2.sp
@@ -232,7 +238,7 @@ fun NewsAppShell() {
                 // Chat screen with dynamic chatId
                 composable("chat/{chatId}") { backStackEntry ->
                     val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
-                    ChatScreen(userViewModel = userViewModel, chatId = chatId)
+                    ChatScreen(userViewModel = userViewModel, newsViewModel = newsViewModel, chatId = chatId)
                 }
             }
         }
