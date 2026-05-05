@@ -9,12 +9,13 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import es.uc3m.android.newscroll.R
+import es.uc3m.android.newscroll.data.NewsRepository
 
 class FetchNewsWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
 
     override suspend fun doWork(): Result {
         return try {
-            // Phase 2: call NewsRepository.fetchFromApis() here
+            NewsRepository.fetchFromApis(emptySet())
             showNotification()
             Result.success()
         } catch (e: Exception) {

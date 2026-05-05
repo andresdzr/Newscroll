@@ -71,6 +71,13 @@ fun NewsFeedScreen(
         }
     }
 
+    // Mark each article as seen when the user lands on it
+    LaunchedEffect(pagerState.currentPage) {
+        if (articles.isNotEmpty() && pagerState.currentPage < articles.size) {
+            viewModel.markSeen(articles[pagerState.currentPage].id)
+        }
+    }
+
     VerticalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize()

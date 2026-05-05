@@ -181,6 +181,58 @@ class UserViewModel : ViewModel() {
             }
     }
 
+    // Fetch saved IDs then resolve each to a full NewsArticle from Firestore
+    fun getSavedArticlesFull(onResult: (List<NewsArticle>) -> Unit) {
+        val userId = getCurrentUserId()
+        if (userId.isBlank()) {
+            Log.d("SavedArticles", "User not logged in — returning empty")
+            onResult(emptyList())
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val savedDocs = db.collection("users")
+                    .document(userId)
+                    .collection("saved_articles")
+                    .get()
+                    .await()
+                Log.d("SavedArticles", "Found ${savedDocs.size()} saved IDs")
+                val articles = savedDocs.mapNotNull { savedDoc ->
+                    try {
+                        val doc = db.collection("articles")
+                            .document(savedDoc.id)
+                            .get()
+                            .await()
+                        if (doc.exists()) {
+                            Log.d("SavedArticles", "Resolved: ${savedDoc.id} → ${doc.getString("title")}")
+                            NewsArticle(
+                                id = doc.getString("id") ?: savedDoc.id,
+                                title = doc.getString("title") ?: "",
+                                description = doc.getString("description") ?: "",
+                                imageUrl = doc.getString("imageUrl") ?: "",
+                                articleUrl = doc.getString("articleUrl") ?: "",
+                                category = doc.getString("category"),
+                                source = doc.getString("source"),
+                                publishedDate = doc.getString("publishedDate")
+                            )
+                        } else {
+                            Log.w("SavedArticles", "No Firestore doc for ID: ${savedDoc.id}")
+                            null
+                        }
+                    } catch (e: Exception) {
+                        Log.e("SavedArticles", "Error fetching ${savedDoc.id}: ${e.message}")
+                        null
+                    }
+                }
+                Log.d("SavedArticles", "Returning ${articles.size} resolved articles")
+                onResult(articles)
+            } catch (e: Exception) {
+                Log.e("SavedArticles", "Failed to load saved articles: ${e.message}")
+                onResult(emptyList())
+            }
+        }
+    }
+
     // Remove article from saved list
     fun removeArticle(articleId: String) {
         val userId = getCurrentUserId()

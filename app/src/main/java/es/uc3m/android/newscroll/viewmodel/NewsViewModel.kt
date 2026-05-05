@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import es.uc3m.android.newscroll.data.FeedShuffler
 import es.uc3m.android.newscroll.data.NewsRepository
 import es.uc3m.android.newscroll.model.NewsArticle
 import android.util.Log
@@ -21,19 +22,43 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     // Articles feed
     // =========================
 
+    private val prefs = application.getSharedPreferences("newscroll_feed_prefs", Context.MODE_PRIVATE)
+
     private val _articles = MutableStateFlow<List<NewsArticle>>(emptyList())
     val articles: StateFlow<List<NewsArticle>> = _articles
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    // Fetch articles from APIs for the given filters and update the feed
+    private fun loadSeenIds(): MutableSet<String> =
+        prefs.getStringSet("seen_article_ids", emptySet())?.toMutableSet() ?: mutableSetOf()
+
+    private fun saveSeenIds(ids: Set<String>) {
+        prefs.edit().putStringSet("seen_article_ids", ids).apply()
+    }
+
+    fun markSeen(articleId: String) {
+        val seen = loadSeenIds()
+        seen.add(articleId)
+        saveSeenIds(seen)
+    }
+
+    // Fetch articles, filter unseen, shuffle with category interleaving
     fun fetchNews(filters: Set<String>) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val fetched = NewsRepository.fetchFromApis(filters)
-                _articles.value = fetched
+                val raw = NewsRepository.fetchFromApis(filters)
+                val seen = loadSeenIds()
+                val unseen = raw.filter { it.id !in seen }
+                val pool = if (unseen.isEmpty()) {
+                    // Cycled through everything — reset and start fresh
+                    saveSeenIds(emptySet())
+                    raw
+                } else {
+                    unseen
+                }
+                _articles.value = FeedShuffler.arrange(pool)
             } catch (e: Exception) {
                 // Keep showing current articles on error
             } finally {

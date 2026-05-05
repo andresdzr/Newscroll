@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import es.uc3m.android.newscroll.R
+import es.uc3m.android.newscroll.model.NewsArticle
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.ui.components.SavedItem
@@ -18,48 +19,43 @@ fun SavedScreen(
     viewModel: NewsViewModel,
     userViewModel: UserViewModel
 ) {
+    var savedArticles by remember { mutableStateOf<List<NewsArticle>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    // Reactive set of saved article IDs
-    val savedIds by viewModel.savedArticles
-
-    // All available articles from the live feed
-    val allArticles by viewModel.articles.collectAsState()
-
-    // Load saved articles from Firebase on start
+    // Load full articles from Firestore when screen opens
     LaunchedEffect(Unit) {
-        viewModel.loadSavedArticlesFromFirebase(userViewModel)
+        isLoading = true
+        userViewModel.getSavedArticlesFull { articles ->
+            savedArticles = articles
+            isLoading = false
+        }
     }
 
-    // Filter only saved articles
-    val savedArticles = remember(savedIds, allArticles) {
-        allArticles.filter { savedIds.contains(it.id) }
-    }
-
-    if (savedArticles.isEmpty()) {
-
-        // Empty state
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = stringResource(R.string.no_saved_articles))
+    when {
+        isLoading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
 
-    } else {
+        savedArticles.isEmpty() -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = stringResource(R.string.no_saved_articles))
+            }
+        }
 
-        // List of saved articles
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(savedArticles) { article ->
-
-                SavedItem(
-                    article = article,
-                    onToggleSaved = {
-                        // Toggle saved state in ViewModel
-                        viewModel.toggleSaved(article, userViewModel)
-                    },
-                )
+        else -> {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(savedArticles, key = { it.id }) { article ->
+                    SavedItem(
+                        article = article,
+                        onToggleSaved = {
+                            // Optimistic remove + persist to Firebase
+                            savedArticles = savedArticles.filter { it.id != article.id }
+                            viewModel.toggleSaved(article, userViewModel)
+                        }
+                    )
+                }
             }
         }
     }
