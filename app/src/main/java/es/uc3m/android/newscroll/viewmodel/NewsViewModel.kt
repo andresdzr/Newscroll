@@ -55,14 +55,19 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun toggleSaved(articleId: String, userViewModel: UserViewModel) {
+    fun toggleSaved(article: NewsArticle, userViewModel: UserViewModel) {
+
         val current = _savedArticles.value
-        if (current.contains(articleId)) {
-            userViewModel.removeArticle(articleId)
-            _savedArticles.value = current - articleId
+
+        if (current.contains(article.id)) {
+
+            userViewModel.removeArticle(article.id)
+            _savedArticles.value = current - article.id
+
         } else {
-            userViewModel.saveArticle(articleId)
-            _savedArticles.value = current + articleId
+
+            userViewModel.saveArticle(article.id)
+            _savedArticles.value = current + article.id
         }
     }
 

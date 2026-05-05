@@ -9,6 +9,7 @@ import es.uc3m.android.newscroll.data.remote.HackerNewsApiService
 import es.uc3m.android.newscroll.data.remote.RetrofitFactory
 import es.uc3m.android.newscroll.data.remote.RssFeedParser
 import es.uc3m.android.newscroll.model.NewsArticle
+import kotlinx.coroutines.tasks.await
 
 private const val TAG = "NewsRepository"
 
@@ -175,21 +176,29 @@ object NewsRepository {
     }
 
     // Stores each article as a flat document so saved IDs can be resolved in Phase 3
-    private fun storeArticles(articles: List<NewsArticle>) {
+
+    private suspend fun storeArticles(articles: List<NewsArticle>) {
+
+        val batch = db.batch()
+
         articles.forEach { article ->
-            db.collection("articles")
-                .document(article.id)
-                .set(mapOf(
-                    "id" to article.id,
-                    "title" to article.title,
-                    "description" to article.description,
-                    "imageUrl" to article.imageUrl,
-                    "articleUrl" to article.articleUrl,
-                    "category" to (article.category ?: ""),
-                    "source" to (article.source ?: ""),
-                    "publishedDate" to (article.publishedDate ?: "")
-                ))
+
+            val ref = db.collection("articles").document(article.id)
+
+            batch.set(ref, mapOf(
+                "id" to article.id,
+                "title" to article.title,
+                "description" to article.description,
+                "imageUrl" to article.imageUrl,
+                "articleUrl" to article.articleUrl,
+                "category" to (article.category ?: ""),
+                "source" to (article.source ?: ""),
+                "publishedDate" to (article.publishedDate ?: "")
+            ))
         }
-        Log.d(TAG, "Stored ${articles.size} articles to Firestore")
+
+        batch.commit().await()
+
+        Log.d(TAG, "Stored ${articles.size} articles (batch)")
     }
 }

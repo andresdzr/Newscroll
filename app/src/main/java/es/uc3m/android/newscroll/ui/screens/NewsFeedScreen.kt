@@ -80,7 +80,7 @@ fun NewsFeedScreen(
             modifier = Modifier,
             article = currentArticle,
             isSaved = currentArticle.id in savedIds,
-            onToggleSaved = { viewModel.toggleSaved(currentArticle.id, userViewModel) },
+            onToggleSaved = { viewModel.toggleSaved(currentArticle, userViewModel) },
             onShareClick = { selectedArticle = currentArticle }
         )
     }

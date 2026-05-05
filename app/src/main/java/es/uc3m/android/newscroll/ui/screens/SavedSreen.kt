@@ -57,7 +57,7 @@ fun SavedScreen(
                     article = article,
                     onToggleSaved = {
                         // Toggle saved state in ViewModel
-                        viewModel.toggleSaved(article.id, userViewModel)
+                        viewModel.toggleSaved(article, userViewModel)
                     },
                 )
             }
