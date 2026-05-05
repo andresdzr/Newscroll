@@ -1,16 +1,16 @@
 package es.uc3m.android.newscroll.model
 
-/**
- * Represents a single news item in the scrolling feed.
- */
 data class NewsArticle(
-    val id: String,             // A unique identifier
-    val title: String,          // The headline of the news
-    val description: String,    // A short summary
-    val imageUrl: String,       // The link to the header image
-    val articleUrl: String,      // The link to the full news article on the web
-    val category: String? = null,      // Filter
-    val country: String? = null,      // Location
-    val latitude: Double? = null,     // For local filter
-    val longitude: Double? = null,     // For local filter
+    val id: String,
+    val title: String,
+    val description: String,
+    val imageUrl: String,
+    val articleUrl: String,
+    val category: String? = null,
+    val country: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val summary: String? = null,
+    val publishedDate: String? = null,
+    val source: String? = null,
 )
