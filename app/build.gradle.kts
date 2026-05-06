@@ -30,6 +30,7 @@ android {
 
         buildConfigField("String", "GUARDIAN_API_KEY", "\"${localProperties.getProperty("GUARDIAN_API_KEY", "")}\"")
         buildConfigField("String", "FINNHUB_API_KEY", "\"${localProperties.getProperty("FINNHUB_API_KEY", "")}\"")
+        buildConfigField("String", "PEXELS_API_KEY", "\"${localProperties.getProperty("PEXELS_API_KEY", "")}\"")
     }
 
     buildTypes {

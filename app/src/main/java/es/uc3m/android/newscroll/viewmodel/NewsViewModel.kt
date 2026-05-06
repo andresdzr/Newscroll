@@ -30,6 +30,8 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private var currentFilters: Set<String> = emptySet()
+
     private fun loadSeenIds(): MutableSet<String> =
         prefs.getStringSet("seen_article_ids", emptySet())?.toMutableSet() ?: mutableSetOf()
 
@@ -43,8 +45,9 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         saveSeenIds(seen)
     }
 
-    // Fetch articles, filter unseen, shuffle with category interleaving
+    // Fetch articles, filter unseen, shuffle — replaces current feed (used on launch / filter change)
     fun fetchNews(filters: Set<String>) {
+        currentFilters = filters
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -52,15 +55,34 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
                 val seen = loadSeenIds()
                 val unseen = raw.filter { it.id !in seen }
                 val pool = if (unseen.isEmpty()) {
-                    // Cycled through everything — reset and start fresh
                     saveSeenIds(emptySet())
                     raw
-                } else {
-                    unseen
-                }
+                } else unseen
                 _articles.value = FeedShuffler.arrange(pool)
             } catch (e: Exception) {
                 // Keep showing current articles on error
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Append next cycle to the end of the feed — used for infinite scroll
+    fun appendNextCycle() {
+        if (_isLoading.value) return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val raw = NewsRepository.fetchFromApis(currentFilters)
+                val seen = loadSeenIds()
+                val unseen = raw.filter { it.id !in seen }
+                val pool = if (unseen.isEmpty()) {
+                    saveSeenIds(emptySet())
+                    raw
+                } else unseen
+                _articles.value = _articles.value + FeedShuffler.arrange(pool)
+            } catch (e: Exception) {
+                // Keep current feed on error
             } finally {
                 _isLoading.value = false
             }

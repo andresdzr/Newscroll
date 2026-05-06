@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Share
@@ -64,6 +65,22 @@ fun NewsItem(
                 .align(Alignment.BottomStart)
                 .padding(16.dp)
         ) {
+
+            // Category chip
+            if (!article.category.isNullOrBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = Color.White.copy(alpha = 0.2f)
+                ) {
+                    Text(
+                        text = article.category!!,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             // Article title
             Text(

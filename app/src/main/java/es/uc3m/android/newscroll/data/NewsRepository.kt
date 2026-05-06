@@ -6,9 +6,13 @@ import es.uc3m.android.newscroll.BuildConfig
 import es.uc3m.android.newscroll.data.remote.FinnhubApiService
 import es.uc3m.android.newscroll.data.remote.GuardianApiService
 import es.uc3m.android.newscroll.data.remote.HackerNewsApiService
+import es.uc3m.android.newscroll.data.remote.PexelsApiService
 import es.uc3m.android.newscroll.data.remote.RetrofitFactory
 import es.uc3m.android.newscroll.data.remote.RssFeedParser
 import es.uc3m.android.newscroll.model.NewsArticle
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 
 private const val TAG = "NewsRepository"
@@ -17,12 +21,16 @@ object NewsRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val rssParser = RssFeedParser(RetrofitFactory.okHttpClient)
+    private val pexelsService = RetrofitFactory.createService(
+        PexelsApiService::class.java,
+        "https://api.pexels.com/"
+    )
 
     suspend fun fetchFromApis(filters: Set<String>): List<NewsArticle> {
         Log.d(TAG, "fetchFromApis called with filters: $filters")
         val result = mutableListOf<NewsArticle>()
 
-        // --- HackerNews: Technology, ML & AI (no API key required) ---
+        // --- HackerNews: Technology, ML & AI ---
         if (filters.isEmpty() || "Technology, ML & AI" in filters) {
             try {
                 Log.d(TAG, "Fetching HackerNews...")
@@ -30,29 +38,28 @@ object NewsRepository {
                     HackerNewsApiService::class.java,
                     "https://hn.algolia.com/api/"
                 )
-                val hits = service.getLatestStories(20).hits
+                val fetched = service.getLatestStories(20).hits
                     .filter { !it.title.isNullOrBlank() && !it.url.isNullOrBlank() }
-                val fetched = hits.map { hit ->
-                    NewsArticle(
-                        id = "hn_${hit.id}",
-                        title = hit.title!!,
-                        description = "By ${hit.author ?: "unknown"} · Hacker News",
-                        imageUrl = "https://picsum.photos/seed/hn${hit.id}/600/800",
-                        articleUrl = hit.url!!,
-                        category = "Technology, ML & AI",
-                        publishedDate = hit.createdAt,
-                        source = "Hacker News"
-                    )
-                }
+                    .map { hit ->
+                        NewsArticle(
+                            id = "hn_${hit.id}",
+                            title = hit.title!!,
+                            description = "By ${hit.author ?: "unknown"} · Hacker News",
+                            imageUrl = "",
+                            articleUrl = hit.url!!,
+                            category = "Technology, ML & AI",
+                            publishedDate = hit.createdAt,
+                            source = "Hacker News"
+                        )
+                    }
                 Log.d(TAG, "HackerNews: fetched ${fetched.size} articles")
                 result.addAll(fetched)
-                storeArticles(fetched)
             } catch (e: Exception) {
                 Log.e(TAG, "HackerNews fetch failed: ${e.message}", e)
             }
         }
 
-        // --- Guardian: Politics & Geopolitics (requires GUARDIAN_API_KEY in local.properties) ---
+        // --- Guardian: Politics & Geopolitics ---
         if (filters.isEmpty() || "Politics & Geopolitics" in filters) {
             val key = BuildConfig.GUARDIAN_API_KEY
             if (key.isBlank()) {
@@ -73,8 +80,7 @@ object NewsRepository {
                             id = "guardian_${item.id.replace("/", "_")}",
                             title = item.title,
                             description = item.fields?.trailText ?: item.category,
-                            imageUrl = item.fields?.thumbnail
-                                ?: "https://picsum.photos/seed/guardian${item.id.hashCode()}/600/800",
+                            imageUrl = item.fields?.thumbnail ?: "",
                             articleUrl = item.url,
                             category = "Politics & Geopolitics",
                             publishedDate = item.date,
@@ -83,14 +89,13 @@ object NewsRepository {
                     }
                     Log.d(TAG, "Guardian: fetched ${articles.size} articles")
                     result.addAll(articles)
-                    storeArticles(articles)
                 } catch (e: Exception) {
                     Log.e(TAG, "Guardian fetch failed: ${e.message}", e)
                 }
             }
         }
 
-        // --- Finnhub: Finance & Investing (requires FINNHUB_API_KEY in local.properties) ---
+        // --- Finnhub: Finance & Investing ---
         if (filters.isEmpty() || "Finance & Investing" in filters) {
             val key = BuildConfig.FINNHUB_API_KEY
             if (key.isBlank()) {
@@ -112,8 +117,7 @@ object NewsRepository {
                                 id = "finnhub_${item.id}",
                                 title = item.title,
                                 description = item.summary ?: "Finance & investing news",
-                                imageUrl = item.image?.takeIf { it.isNotBlank() }
-                                    ?: "https://picsum.photos/seed/finnhub${item.id}/600/800",
+                                imageUrl = item.image?.takeIf { it.isNotBlank() } ?: "",
                                 articleUrl = item.url,
                                 category = "Finance & Investing",
                                 publishedDate = item.timestamp.toString(),
@@ -122,7 +126,6 @@ object NewsRepository {
                         }
                     Log.d(TAG, "Finnhub: fetched ${articles.size} articles")
                     result.addAll(articles)
-                    storeArticles(articles)
                 } catch (e: Exception) {
                     Log.e(TAG, "Finnhub fetch failed: ${e.message}", e)
                 }
@@ -138,13 +141,11 @@ object NewsRepository {
                     category = "History & Philosophy",
                     source = "Aeon"
                 ).take(15).map { article ->
-                    if (article.imageUrl.isBlank())
-                        article.copy(imageUrl = "https://picsum.photos/seed/hist${article.id.hashCode()}/600/800")
-                    else article
+                    val stableId = "rss_${Math.abs(article.articleUrl.hashCode())}"
+                    article.copy(id = stableId, imageUrl = "")
                 }
                 Log.d(TAG, "History RSS: fetched ${items.size} articles")
                 result.addAll(items)
-                storeArticles(items)
             } catch (e: Exception) {
                 Log.e(TAG, "History RSS fetch failed: ${e.message}", e)
             }
@@ -159,32 +160,65 @@ object NewsRepository {
                     category = "Survival Knowledge",
                     source = "Art of Manliness"
                 ).take(15).map { article ->
-                    if (article.imageUrl.isBlank())
-                        article.copy(imageUrl = "https://picsum.photos/seed/surv${article.id.hashCode()}/600/800")
-                    else article
+                    val stableId = "rss_${Math.abs(article.articleUrl.hashCode())}"
+                    article.copy(id = stableId, imageUrl = "")
                 }
                 Log.d(TAG, "Survival RSS: fetched ${items.size} articles")
                 result.addAll(items)
-                storeArticles(items)
             } catch (e: Exception) {
                 Log.e(TAG, "Survival RSS fetch failed: ${e.message}", e)
             }
         }
 
-        Log.d(TAG, "Total fetched: ${result.size} articles.")
-        return result
+        // Resolve images: Pexels for blanks, stable picsum as fallback
+        val withImages = resolveImages(result)
+        Log.d(TAG, "Total fetched: ${withImages.size} articles.")
+
+        storeArticles(withImages)
+        return withImages
     }
 
-    // Stores each article as a flat document so saved IDs can be resolved in Phase 3
+    // Resolve blank imageUrls concurrently using Pexels, fall back to stable picsum
+    private suspend fun resolveImages(articles: List<NewsArticle>): List<NewsArticle> {
+        val key = BuildConfig.PEXELS_API_KEY
+        if (key.isBlank()) {
+            Log.w(TAG, "Pexels: skipped — add PEXELS_API_KEY to local.properties")
+            return articles.map { article ->
+                if (article.imageUrl.isBlank()) article.copy(imageUrl = stablePicsumUrl(article.id))
+                else article
+            }
+        }
+        return coroutineScope {
+            articles.map { article ->
+                async {
+                    if (article.imageUrl.isBlank()) {
+                        val query = article.title
+                            .split(" ")
+                            .take(4)
+                            .joinToString(" ")
+                        try {
+                            val photo = pexelsService.searchPhotos(
+                                apiKey = key,
+                                query = query
+                            ).photos.firstOrNull()
+                            article.copy(imageUrl = photo?.src?.large ?: stablePicsumUrl(article.id))
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Pexels failed for '${article.title}': ${e.message}")
+                            article.copy(imageUrl = stablePicsumUrl(article.id))
+                        }
+                    } else article
+                }
+            }.awaitAll()
+        }
+    }
+
+    private fun stablePicsumUrl(id: String): String =
+        "https://picsum.photos/seed/${Math.abs(id.hashCode())}/600/800"
 
     private suspend fun storeArticles(articles: List<NewsArticle>) {
-
         val batch = db.batch()
-
         articles.forEach { article ->
-
             val ref = db.collection("articles").document(article.id)
-
             batch.set(ref, mapOf(
                 "id" to article.id,
                 "title" to article.title,
@@ -196,9 +230,7 @@ object NewsRepository {
                 "publishedDate" to (article.publishedDate ?: "")
             ))
         }
-
         batch.commit().await()
-
         Log.d(TAG, "Stored ${articles.size} articles (batch)")
     }
 }

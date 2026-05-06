@@ -71,11 +71,12 @@ fun NewsFeedScreen(
         }
     }
 
-    // Mark each article as seen when the user lands on it
+    // Mark as seen and trigger infinite scroll append when near the end
     LaunchedEffect(pagerState.currentPage) {
-        if (articles.isNotEmpty() && pagerState.currentPage < articles.size) {
-            viewModel.markSeen(articles[pagerState.currentPage].id)
-        }
+        if (articles.isEmpty()) return@LaunchedEffect
+        val page = pagerState.currentPage
+        if (page < articles.size) viewModel.markSeen(articles[page].id)
+        if (page >= articles.size - 5) viewModel.appendNextCycle()
     }
 
     VerticalPager(
