@@ -17,10 +17,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
+import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.model.NewsArticle
 
 @Composable
@@ -114,7 +116,7 @@ fun SavedItem(
                         ),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text("Read Full Article", color = Color.Black)
+                        Text(text = stringResource(R.string.read_full_article), color = Color.Black)
                     }
 
                     // Share and remove from saved actions

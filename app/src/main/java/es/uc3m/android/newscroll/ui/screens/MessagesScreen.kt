@@ -15,6 +15,8 @@ import androidx.navigation.NavHostController
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.viewmodel.ChatPreview
 import es.uc3m.android.newscroll.ui.components.ChatItem
+import androidx.compose.ui.res.stringResource
+import es.uc3m.android.newscroll.R
 
 @Composable
 fun MessagesScreen(
@@ -63,7 +65,7 @@ fun MessagesScreen(
             ) {
 
                 Text(
-                    text = "Mensajes",
+                    text = stringResource(R.string.messages),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     )
@@ -86,12 +88,12 @@ fun MessagesScreen(
                     ) {
 
                         Text(
-                            text = "No tienes chats",
+                            text = stringResource(R.string.no_chats),
                             style = MaterialTheme.typography.titleMedium
                         )
 
                         Text(
-                            text = "Empieza añadiendo amigos",
+                            text = stringResource(R.string.start_adding_friends),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

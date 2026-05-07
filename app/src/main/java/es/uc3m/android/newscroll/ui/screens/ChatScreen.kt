@@ -23,6 +23,7 @@ import es.uc3m.android.newscroll.R
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,10 @@ fun ChatScreen(
 
     val listState = rememberLazyListState()
     val context = LocalContext.current
+
+    val articleCache = remember {
+        mutableStateMapOf<String, es.uc3m.android.newscroll.model.NewsArticle?>()
+    }
 
     // Listen messages
     LaunchedEffect(chatId) {
@@ -107,7 +112,10 @@ fun ChatScreen(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Text(
-                        text = if (chatUserName.isNotEmpty()) chatUserName else "Loading...",
+                        text = if (chatUserName.isNotEmpty())
+                            chatUserName
+                        else
+                            stringResource(R.string.loading),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.SemiBold
                         )
@@ -129,7 +137,7 @@ fun ChatScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -151,9 +159,23 @@ fun ChatScreen(
 
                 val isMe = msg.senderId == currentUserId
 
-                val article = if (msg.articleId != null) {
-                    feedArticles.find { it.id == msg.articleId }
-                } else null
+                val articleId = msg.articleId
+
+                if (
+                    articleId != null &&
+                    articleCache[articleId] == null
+                ) {
+
+                    LaunchedEffect(articleId) {
+
+                        userViewModel.getArticleById(articleId) {
+
+                            articleCache[articleId] = it
+                        }
+                    }
+                }
+
+                val article = articleCache[articleId]
 
                 val isSaved = article?.id in savedArticles
 
@@ -191,7 +213,9 @@ fun ChatScreen(
                 OutlinedTextField(
                     value = input,
                     onValueChange = { input = it },
-                    placeholder = { Text("Escribe un mensaje") },
+                    placeholder = {
+                        Text(stringResource(R.string.write_message))
+                    },
                     modifier = Modifier.weight(1f)
                 )
 

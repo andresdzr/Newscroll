@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import es.uc3m.android.newscroll.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun AddFriendScreen(userViewModel: UserViewModel) {
@@ -48,7 +49,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         // Screen title
         Text(
-            text = "Añadir amigos",
+            text = stringResource(R.string.add_friends),
             style = MaterialTheme.typography.headlineSmall
         )
 
@@ -65,7 +66,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
             ) {
 
                 Text(
-                    text = "Tu ID",
+                    text = stringResource(R.string.your_id),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -89,7 +90,11 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                         onClick = {
                             if (userId.isNotEmpty()) {
                                 clipboard.setText(AnnotatedString(userId))
-                                Toast.makeText(context, "ID copiado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.id_copied),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         },
                         modifier = Modifier
@@ -113,7 +118,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
         // Input section title
         Text(
-            text = "Añadir amigo",
+            text = stringResource(R.string.add_friend),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -123,7 +128,9 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
         OutlinedTextField(
             value = userIdInput,
             onValueChange = { userIdInput = it },
-            placeholder = { Text("Introduce un ID") },
+            placeholder = {
+                Text(stringResource(R.string.enter_id))
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium
         )
@@ -143,14 +150,14 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
                 .height(48.dp),
             shape = MaterialTheme.shapes.medium
         ) {
-            Text("Enviar solicitud")
+            Text(stringResource(R.string.send_request))
         }
 
         Spacer(modifier = Modifier.height(28.dp))
 
         // Requests section title
         Text(
-            text = "Solicitudes",
+            text = stringResource(R.string.requests),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -160,7 +167,7 @@ fun AddFriendScreen(userViewModel: UserViewModel) {
 
             // Empty state
             Text(
-                text = "No hay solicitudes pendientes",
+                text = stringResource(R.string.no_pending_requests),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -210,7 +217,7 @@ fun FriendRequestItem(
 
         // Accept request action
         Button(onClick = onAccept) {
-            Text("Aceptar")
+            Text(stringResource(R.string.accept))
         }
     }
 }

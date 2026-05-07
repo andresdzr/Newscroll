@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -61,7 +62,7 @@ fun ShareBottomSheet(
 
             // Header title
             Text(
-                text = "Compartir",
+                text = stringResource(R.string.share),
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -79,7 +80,12 @@ fun ShareBottomSheet(
                         .weight(1f)
                         .clickable {
                             clipboard.setText(AnnotatedString(article.articleUrl))
-                            Toast.makeText(context, "Link copiado", Toast.LENGTH_SHORT).show()
+
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.link_copied),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                 ) {
 
@@ -90,14 +96,14 @@ fun ShareBottomSheet(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.copy),
-                            contentDescription = "Copy",
+                            contentDescription = stringResource(R.string.copy),
                             modifier = Modifier.padding(16.dp)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Text("Copiar")
+                    Text(stringResource(R.string.copy))
                 }
 
                 // Share article externally using Android intent
@@ -112,7 +118,10 @@ fun ShareBottomSheet(
                             }
 
                             context.startActivity(
-                                Intent.createChooser(intent, "Compartir noticia")
+                                Intent.createChooser(
+                                    intent,
+                                    context.getString(R.string.share_news)
+                                )
                             )
                         }
                 ) {
@@ -124,14 +133,14 @@ fun ShareBottomSheet(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Share,
-                            contentDescription = "Share",
+                            contentDescription = stringResource(R.string.share),
                             modifier = Modifier.padding(16.dp)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Text("Compartir")
+                    Text(stringResource(R.string.share))
                 }
             }
 
@@ -139,7 +148,7 @@ fun ShareBottomSheet(
 
             // Section title for chat sharing
             Text(
-                text = "Enviar a",
+                text = stringResource(R.string.send_to),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -149,7 +158,7 @@ fun ShareBottomSheet(
 
                 // Empty chat list state
                 Text(
-                    text = "No hay chats recientes",
+                    text = stringResource(R.string.no_recent_chats),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -164,11 +173,17 @@ fun ShareBottomSheet(
                             .clickable {
 
                                 // Send article message to selected chat
-                                userViewModel.sendArticleMessage(chat.chatId, article.id)
+                                userViewModel.sendArticleMessage(
+                                    chat.chatId,
+                                    article.id
+                                )
 
                                 Toast.makeText(
                                     context,
-                                    "Enviado a ${chat.username}",
+                                    context.getString(
+                                        R.string.sent_to,
+                                        chat.username
+                                    ),
                                     Toast.LENGTH_SHORT
                                 ).show()
 
@@ -180,8 +195,10 @@ fun ShareBottomSheet(
 
                         // Chat user avatar
                         AsyncImage(
-                            model = if (chat.photoUrl.isNotEmpty()) chat.photoUrl
-                            else "https://via.placeholder.com/150",
+                            model = if (chat.photoUrl.isNotEmpty())
+                                chat.photoUrl
+                            else
+                                "https://via.placeholder.com/150",
                             contentDescription = null,
                             modifier = Modifier
                                 .size(44.dp)

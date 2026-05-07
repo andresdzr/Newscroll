@@ -11,7 +11,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
-
+import androidx.compose.ui.res.stringResource
+import es.uc3m.android.newscroll.R
 @Composable
 fun LoginScreen(
     userViewModel: UserViewModel,
@@ -36,7 +37,7 @@ fun LoginScreen(
 
         // Screen title
         Text(
-            text = "Inicia sesión en Newscroll",
+            text = stringResource(R.string.login_title),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -49,7 +50,9 @@ fun LoginScreen(
                 email = it
                 error = null // clear error on input change
             },
-            label = { Text("Correo electrónico") },
+            label = {
+                Text(stringResource(R.string.email))
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -62,7 +65,9 @@ fun LoginScreen(
                 password = it
                 error = null // clear error on input change
             },
-            label = { Text("Contraseña") },
+            label = {
+                Text(stringResource(R.string.password))
+            },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (passwordVisible)
                 VisualTransformation.None
@@ -103,13 +108,13 @@ fun LoginScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Iniciar sesión")
+            Text(stringResource(R.string.login))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Navigation to register screen
-        Text("¿Todavía no tienes cuenta?")
+        Text(stringResource(R.string.no_account))
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -117,7 +122,7 @@ fun LoginScreen(
             onClick = onNavigateToRegister,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Registrarse")
+            Text(stringResource(R.string.register))
         }
     }
 }

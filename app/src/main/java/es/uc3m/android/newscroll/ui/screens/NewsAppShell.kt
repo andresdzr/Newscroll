@@ -86,7 +86,7 @@ fun NewsAppShell() {
 
                 DrawerNavItem(
                     icon = Icons.Default.Home,
-                    label = "Feed",
+                    label = stringResource(R.string.feed),
                     selected = currentRoute?.destination?.route == "feed",
                     onClick = {
                         navController.navigate("feed")
@@ -129,7 +129,7 @@ fun NewsAppShell() {
                 if (isLoggedIn) {
                     DrawerNavItem(
                         icon = Icons.Default.Email,
-                        label = "Mensajes",
+                        label = stringResource(R.string.messages),
                         selected = currentRoute?.destination?.route == "messages",
                         onClick = {
                             navController.navigate("messages")
@@ -345,7 +345,10 @@ private fun DrawerHero(
             )
 
             Text(
-                text = if (isLoggedIn) "Newscroll Member" else "Sign in to personalize",
+                text = if (isLoggedIn)
+                    stringResource(R.string.newscroll_member)
+                else
+                    stringResource(R.string.sign_in_personalize),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
             )
@@ -412,7 +415,7 @@ fun CategoryFilterSheet(
             onClick = onDone,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Done")
+            Text(stringResource(R.string.done))
         }
     }
 }

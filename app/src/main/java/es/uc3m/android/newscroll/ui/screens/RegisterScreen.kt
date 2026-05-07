@@ -11,7 +11,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
-
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import es.uc3m.android.newscroll.R
 @Composable
 fun RegisterScreen(
     userViewModel: UserViewModel,
@@ -29,7 +31,7 @@ fun RegisterScreen(
 
     // Local error state
     var error by remember { mutableStateOf<String?>(null) }
-
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,7 +41,7 @@ fun RegisterScreen(
 
         // Screen title
         Text(
-            text = "Crear cuenta en Newscroll",
+            text = stringResource(R.string.create_account_title),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -52,7 +54,9 @@ fun RegisterScreen(
                 email = it
                 error = null // clear error on input change
             },
-            label = { Text("Correo electrónico") },
+            label = {
+                Text(stringResource(R.string.email))
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -65,7 +69,9 @@ fun RegisterScreen(
                 password = it
                 error = null
             },
-            label = { Text("Contraseña") },
+            label = {
+                Text(stringResource(R.string.password))
+            },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (passwordVisible)
                 VisualTransformation.None
@@ -94,7 +100,9 @@ fun RegisterScreen(
                 repeatPassword = it
                 error = null
             },
-            label = { Text("Repetir contraseña") },
+            label = {
+                Text(stringResource(R.string.repeat_password))
+            },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (repeatPasswordVisible)
                 VisualTransformation.None
@@ -118,7 +126,7 @@ fun RegisterScreen(
 
         // Password requirements hint
         Text(
-            text = "La contraseña debe tener al menos 6 caracteres",
+            text = stringResource(R.string.password_min_chars),
             style = MaterialTheme.typography.bodySmall
         )
 
@@ -139,7 +147,7 @@ fun RegisterScreen(
                 when {
                     // Password mismatch validation
                     password != repeatPassword -> {
-                        error = "Las contraseñas no coinciden"
+                        error = context.getString(R.string.passwords_do_not_match)
                         password = ""
                         repeatPassword = ""
                     }
@@ -163,14 +171,14 @@ fun RegisterScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Crear cuenta")
+            Text(stringResource(R.string.create_account))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Navigate back to login
         TextButton(onClick = onBack) {
-            Text("Volver")
+            Text(stringResource(R.string.back))
         }
     }
 }

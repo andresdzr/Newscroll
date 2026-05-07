@@ -63,7 +63,10 @@ fun ThemeSection(viewModel: SettingsViewModel) {
                     .clickable { expanded = !expanded },
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("App Theme", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(id = R.string.app_theme),
+                    style = MaterialTheme.typography.titleMedium
+                )
 
                 Icon(
                     imageVector = if (expanded)
@@ -91,9 +94,14 @@ fun ThemeSection(viewModel: SettingsViewModel) {
                                 label = {
                                     Text(
                                         when (theme) {
-                                            AppTheme.SYSTEM -> "System"
-                                            AppTheme.LIGHT -> "Light"
-                                            AppTheme.DARK -> "Dark"
+                                            AppTheme.SYSTEM ->
+                                                stringResource(R.string.theme_system)
+
+                                            AppTheme.LIGHT ->
+                                                stringResource(R.string.theme_light)
+
+                                            AppTheme.DARK ->
+                                                stringResource(R.string.theme_dark)
                                         }
                                     )
                                 },
@@ -133,7 +141,10 @@ fun FiltersSection(viewModel: SettingsViewModel) {
                     .clickable { expanded = !expanded },
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(stringResource(id = R.string.filters), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(id = R.string.filters),
+                    style = MaterialTheme.typography.titleMedium
+                )
 
                 Icon(
                     imageVector = if (expanded)
@@ -199,7 +210,10 @@ fun LocationSection(viewModel: SettingsViewModel) {
                     .clickable { expanded = !expanded },
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(stringResource(id = R.string.location), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(id = R.string.location),
+                    style = MaterialTheme.typography.titleMedium
+                )
 
                 Icon(
                     imageVector = if (expanded)
@@ -234,9 +248,14 @@ fun LocationSection(viewModel: SettingsViewModel) {
                                 label = {
                                     Text(
                                         when (mode) {
-                                            LocationMode.LOCAL -> "Local"
-                                            LocationMode.NATIONAL -> "National"
-                                            LocationMode.GLOBAL -> "Global"
+                                            LocationMode.LOCAL ->
+                                                stringResource(R.string.location_local)
+
+                                            LocationMode.NATIONAL ->
+                                                stringResource(R.string.location_national)
+
+                                            LocationMode.GLOBAL ->
+                                                stringResource(R.string.location_global)
                                         }
                                     )
                                 },
@@ -255,7 +274,12 @@ fun LocationSection(viewModel: SettingsViewModel) {
                     // Radius slider (only for local mode)
                     if (selectedMode == LocationMode.LOCAL) {
 
-                        Text("Radius: ${radius.toInt()} km")
+                        Text(
+                            stringResource(
+                                R.string.radius_km,
+                                radius.toInt()
+                            )
+                        )
 
                         Slider(
                             value = radius,

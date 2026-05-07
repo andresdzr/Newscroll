@@ -15,4 +15,68 @@
     <string name="location">Localización</string>
     <string name="no_saved_articles">Ningún artículo guardado todavía</string>
     <string name="remove_saved">Eliminar</string>
+    <string name="add_friends">Añadir amigos</string>
+    <string name="your_id">Tu ID</string>
+    <string name="id_copied">ID copiado</string>
+    <string name="copy_id">Copiar ID</string>
+    <string name="add_friend">Añadir amigo</string>
+    <string name="enter_id">Introduce un ID</string>
+    <string name="send_request">Enviar solicitud</string>
+    <string name="requests">Solicitudes</string>
+    <string name="no_pending_requests">No hay solicitudes pendientes</string>
+    <string name="accept">Aceptar</string>
+    <string name="loading">Cargando...</string>
+    <string name="back">Volver</string>
+    <string name="write_message">Escribe un mensaje</string>
+    <string name="send">Enviar</string>
+    <string name="login_title">Inicia sesión en Newscroll</string>
+    <string name="email">Correo electrónico</string>
+    <string name="no_account">¿Todavía no tienes cuenta?</string>
+    <string name="register">Registrarse</string>
+    <string name="messages">Mensajes</string>
+    <string name="no_chats">No tienes chats</string>
+    <string name="start_adding_friends">Empieza añadiendo amigos</string>
+    <string name="feed">Feed</string>
+    <string name="newscroll_member">Miembro de Newscroll</string>
+    <string name="sign_in_personalize">Inicia sesión para personalizar</string>
+    <string name="done">Hecho</string>
+    <string name="save_changes">Guardar cambios</string>
+    <string name="change_photo">Cambiar foto</string>
+    <string name="create_account_title">Crear cuenta en Newscroll</string>
+    <string name="repeat_password">Repetir contraseña</string>
+    <string name="password_min_chars">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="passwords_do_not_match">Las contraseñas no coinciden</string>
+    <string name="create_account">Crear cuenta</string>
+
+    <string name="technology_filter">Tecnología, IA y ML</string>
+    <string name="finance_filter">Finanzas e inversión</string>
+    <string name="politics_filter">Política y geopolítica</string>
+    <string name="history_filter">Historia y filosofía</string>
+    <string name="survival_filter">Conocimientos de supervivencia</string>
+
+    <string name="app_theme">Tema de la app</string>
+
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+
+    <string name="location_local">Local</string>
+    <string name="location_national">Nacional</string>
+    <string name="location_global">Global</string>
+
+    <string name="radius_km">Radio: %1$d km</string>
+
+    <string name="share">Compartir</string>
+
+    <string name="link_copied">Link copiado</string>
+
+    <string name="copy">Copiar</string>
+
+    <string name="share_news">Compartir noticia</string>
+
+    <string name="send_to">Enviar a</string>
+
+    <string name="no_recent_chats">No hay chats recientes</string>
+
+    <string name="sent_to">Enviado a %1$s</string>
 </resources>

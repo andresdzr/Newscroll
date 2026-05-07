@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.clip
 import coil.compose.AsyncImage
 import es.uc3m.android.newscroll.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun ProfileSettingsScreen(userViewModel: UserViewModel) {
@@ -116,7 +117,7 @@ fun ProfileView(userViewModel: UserViewModel) {
             ) {
 
                 Text(
-                    text = "Perfil",
+                    text = stringResource(R.string.profile),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -127,7 +128,9 @@ fun ProfileView(userViewModel: UserViewModel) {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    placeholder = { Text("Nombre de usuario") },
+                    placeholder = {
+                        Text(stringResource(R.string.username))
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -142,7 +145,7 @@ fun ProfileView(userViewModel: UserViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Guardar cambios")
+                    Text(stringResource(R.string.save_changes))
                 }
             }
         }
@@ -168,7 +171,7 @@ fun ProfileView(userViewModel: UserViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cambiar foto")
+                    Text(stringResource(R.string.change_photo))
                 }
 
                 // Logout action
@@ -177,7 +180,7 @@ fun ProfileView(userViewModel: UserViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cerrar sesión")
+                    Text(stringResource(R.string.logout))
                 }
             }
         }

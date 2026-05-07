@@ -20,7 +20,7 @@ class NewsNotificationWorker(
 
         return try {
 
-            // 🔹 Check permiso Android 13+
+            // Check permiso Android 13+
             if (
                 ContextCompat.checkSelfPermission(
                     applicationContext,

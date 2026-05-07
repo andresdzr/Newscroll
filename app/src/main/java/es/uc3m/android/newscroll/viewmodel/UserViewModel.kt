@@ -17,6 +17,7 @@ import es.uc3m.android.newscroll.notifications.NotificationHelper
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+
 // =========================
 // DATA MODELS
 // =========================
@@ -211,6 +212,37 @@ class UserViewModel : ViewModel() {
                 onResult(emptyList())
             }
         }
+    }
+
+    fun getArticleById(
+        articleId: String,
+        onResult: (NewsArticle?) -> Unit
+    ) {
+
+        db.collection("articles")
+            .document(articleId)
+            .get()
+            .addOnSuccessListener { doc ->
+
+                if (doc.exists()) {
+
+                    onResult(
+                        NewsArticle(
+                            id = doc.getString("id") ?: articleId,
+                            title = doc.getString("title") ?: "",
+                            description = doc.getString("description") ?: "",
+                            imageUrl = doc.getString("imageUrl") ?: "",
+                            articleUrl = doc.getString("articleUrl") ?: "",
+                            category = doc.getString("category"),
+                            source = doc.getString("source"),
+                            publishedDate = doc.getString("publishedDate")
+                        )
+                    )
+
+                } else {
+                    onResult(null)
+                }
+            }
     }
 
     // Remove article from saved list
@@ -490,15 +522,15 @@ class UserViewModel : ViewModel() {
 
                     val previousSize = messagesCache[chatId] ?: 0
 
-                    // 🔹 Nuevo mensaje detectado
+                    // Nuevo mensaje detectado
                     if (list.size > previousSize && list.isNotEmpty()) {
 
                         val lastMessage = list.last()
 
-                        // 🔹 SOLO si el mensaje NO es mío
+                        // SOLO si el mensaje NO es mío
                         if (lastMessage.senderId != getCurrentUserId()) {
 
-                            // 🔹 Check permisos
+                            // Check permisos
                             if (
                                 ContextCompat.checkSelfPermission(
                                     context,
