@@ -45,15 +45,18 @@ fun SavedScreen(
         }
 
         else -> {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(savedArticles, key = { it.id }) { article ->
+            // List of saved articles
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(savedArticles) { article ->
+
                     SavedItem(
                         article = article,
                         onToggleSaved = {
-                            // Optimistic remove + persist to Firebase
-                            savedArticles = savedArticles.filter { it.id != article.id }
-                            viewModel.toggleSaved(article, userViewModel)
-                        }
+                            // Toggle saved state in ViewModel
+                            viewModel.toggleSaved(article.id, userViewModel)
+                        },
                     )
                 }
             }
