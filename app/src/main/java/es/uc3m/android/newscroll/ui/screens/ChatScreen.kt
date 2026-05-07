@@ -58,9 +58,12 @@ fun ChatScreen(
     var chatPhotoUrl by remember { mutableStateOf("") }
 
     LaunchedEffect(chatId) {
-        userViewModel.getUserProfile(chatId) { userPreview ->
-            chatUserName = userPreview.username
-            chatPhotoUrl = userPreview.photoUrl
+        userViewModel.getChats { chats ->
+            val chat = chats.find { it.chatId == chatId }
+            if (chat != null) {
+                chatUserName = chat.username
+                chatPhotoUrl = chat.photoUrl
+            }
         }
     }
 
@@ -90,7 +93,7 @@ fun ChatScreen(
                         model = if (chatPhotoUrl.isNotEmpty()) chatPhotoUrl else "https://via.placeholder.com/150",
                         contentDescription = null,
                         modifier = Modifier
-                            .size(40.dp) // 🔹 más grande
+                            .size(40.dp) // más grande
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
