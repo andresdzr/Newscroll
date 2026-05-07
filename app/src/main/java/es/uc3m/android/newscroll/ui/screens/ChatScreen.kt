@@ -22,6 +22,8 @@ import es.uc3m.android.newscroll.ui.components.MessageItem
 import es.uc3m.android.newscroll.R
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
@@ -38,10 +40,14 @@ fun ChatScreen(
     var input by remember { mutableStateOf("") }
 
     val listState = rememberLazyListState()
+    val context = LocalContext.current
 
     // Listen messages
     LaunchedEffect(chatId) {
-        userViewModel.listenMessages(chatId) {
+        userViewModel.listenMessages(
+            context,
+            chatId
+        ) {
             messages = it
         }
     }
@@ -93,7 +99,7 @@ fun ChatScreen(
                         model = if (chatPhotoUrl.isNotEmpty()) chatPhotoUrl else "https://via.placeholder.com/150",
                         contentDescription = null,
                         modifier = Modifier
-                            .size(40.dp) // 🔹 más grande
+                            .size(40.dp) // más grande
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
@@ -136,7 +142,7 @@ fun ChatScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
@@ -157,15 +163,15 @@ fun ChatScreen(
                     article = article,
                     isSaved = isSaved,
                     onToggleSaved = {
-                        article?.let {
+                        if (article != null) {
                             if (isSaved) {
-                                userViewModel.removeArticle(it.id)
+                                userViewModel.removeArticle(article.id)
                             } else {
-                                userViewModel.saveArticle(it.id)
+                                userViewModel.saveArticle(article.id)
                             }
 
-                            userViewModel.getSavedArticles {
-                                savedArticles = it
+                            userViewModel.getSavedArticles { newSavedArticles ->
+                                savedArticles = newSavedArticles
                             }
                         }
                     }
@@ -178,16 +184,15 @@ fun ChatScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
                 OutlinedTextField(
                     value = input,
                     onValueChange = { input = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Type a message...") },
-                    shape = MaterialTheme.shapes.large
+                    placeholder = { Text("Escribe un mensaje") },
+                    modifier = Modifier.weight(1f)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -200,10 +205,7 @@ fun ChatScreen(
                         }
                     }
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_send),
-                        contentDescription = "Send"
-                    )
+                    Icon(painterResource(id = R.drawable.ic_send), contentDescription = "Send")
                 }
             }
         }

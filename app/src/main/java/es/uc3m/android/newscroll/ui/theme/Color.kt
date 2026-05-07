@@ -2,22 +2,21 @@ package es.uc3m.android.newscroll.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// 🔹 BRAND (basado en tu imagen, refinado)
-val Primary = Color(0xFF6C63FF)       // purple principal (más limpio)
+val Primary = Color(0xFF6C63FF)       // main purple
 val PrimaryVariant = Color(0xFF5A52E0)
 
-val Accent = Color(0xFFE07A7A)        // coral (CTA / acciones)
+val Accent = Color(0xFFE07A7A)        // coral
 val AccentSoft = Color(0xFFF2A3A3)
 
-// 🔹 BACKGROUNDS (MUY IMPORTANTE)
-val Background = Color(0xFFF5F5F7)    // gris tipo iOS
+// BACKGROUNDS
+val Background = Color(0xFFF5F5F7)    // grey
 val Surface = Color(0xFFFFFFFF)
 
-// 🔹 TEXTOS
+//  TEXTOS
 val OnPrimary = Color.White
 val OnSurface = Color(0xFF1C1C1E)
 val OnSurfaceVariant = Color(0xFF6B7280)
 
-// 🔹 UI SYSTEM
-val Secondary = Color(0xFF8E8EA0)     // gris frío elegante
+// UI SYSTEM
+val Secondary = Color(0xFF8E8EA0)
 val Outline = Color(0xFFE5E7EB)

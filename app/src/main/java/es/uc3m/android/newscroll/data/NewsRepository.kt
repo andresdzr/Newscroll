@@ -10,10 +10,6 @@ import es.uc3m.android.newscroll.data.remote.PexelsApiService
 import es.uc3m.android.newscroll.data.remote.RetrofitFactory
 import es.uc3m.android.newscroll.data.remote.RssFeedParser
 import es.uc3m.android.newscroll.model.NewsArticle
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.tasks.await
 
 private const val TAG = "NewsRepository"
 
@@ -170,67 +166,28 @@ object NewsRepository {
             }
         }
 
-        // Resolve images: Pexels for blanks, stable picsum as fallback
-        val withImages = resolveImages(result)
-        Log.d(TAG, "Total fetched: ${withImages.size} articles.")
+        Log.d(TAG, "Total fetched: ${result.size} articles.")
 
-        storeArticles(withImages)
-        return withImages
+        storeArticles(result)
+        return result
     }
 
-    // Resolve blank imageUrls concurrently using Pexels, fall back to stable picsum
-    private suspend fun resolveImages(articles: List<NewsArticle>): List<NewsArticle> {
-        val key = BuildConfig.PEXELS_API_KEY
-        if (key.isBlank()) {
-            Log.w(TAG, "Pexels: skipped — add PEXELS_API_KEY to local.properties")
-            return articles.map { article ->
-                if (article.imageUrl.isBlank()) article.copy(imageUrl = stablePicsumUrl(article.id))
-                else article
-            }
-        }
-        return coroutineScope {
-            articles.map { article ->
-                async {
-                    if (article.imageUrl.isBlank()) {
-                        val query = article.title
-                            .split(" ")
-                            .take(4)
-                            .joinToString(" ")
-                        try {
-                            val photo = pexelsService.searchPhotos(
-                                apiKey = key,
-                                query = query
-                            ).photos.firstOrNull()
-                            article.copy(imageUrl = photo?.src?.large ?: stablePicsumUrl(article.id))
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Pexels failed for '${article.title}': ${e.message}")
-                            article.copy(imageUrl = stablePicsumUrl(article.id))
-                        }
-                    } else article
-                }
-            }.awaitAll()
-        }
-    }
-
-    private fun stablePicsumUrl(id: String): String =
-        "https://picsum.photos/seed/${Math.abs(id.hashCode())}/600/800"
-
-    private suspend fun storeArticles(articles: List<NewsArticle>) {
-        val batch = db.batch()
+    // Stores each article as a flat document so saved IDs can be resolved in Phase 3
+    private fun storeArticles(articles: List<NewsArticle>) {
         articles.forEach { article ->
-            val ref = db.collection("articles").document(article.id)
-            batch.set(ref, mapOf(
-                "id" to article.id,
-                "title" to article.title,
-                "description" to article.description,
-                "imageUrl" to article.imageUrl,
-                "articleUrl" to article.articleUrl,
-                "category" to (article.category ?: ""),
-                "source" to (article.source ?: ""),
-                "publishedDate" to (article.publishedDate ?: "")
-            ))
+            db.collection("articles")
+                .document(article.id)
+                .set(mapOf(
+                    "id" to article.id,
+                    "title" to article.title,
+                    "description" to article.description,
+                    "imageUrl" to article.imageUrl,
+                    "articleUrl" to article.articleUrl,
+                    "category" to (article.category ?: ""),
+                    "source" to (article.source ?: ""),
+                    "publishedDate" to (article.publishedDate ?: "")
+                ))
         }
-        batch.commit().await()
-        Log.d(TAG, "Stored ${articles.size} articles (batch)")
+        Log.d(TAG, "Stored ${articles.size} articles to Firestore")
     }
 }

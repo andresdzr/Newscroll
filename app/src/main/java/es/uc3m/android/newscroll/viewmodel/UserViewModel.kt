@@ -1,5 +1,7 @@
 package es.uc3m.android.newscroll.viewmodel
 
+import android.util.Log
+import es.uc3m.android.newscroll.model.NewsArticle
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,8 +12,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 import com.google.firebase.firestore.SetOptions
-import es.uc3m.android.newscroll.model.NewsArticle
-import android.util.Log
+import android.content.Context
+import es.uc3m.android.newscroll.notifications.NotificationHelper
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 // =========================
 // DATA MODELS
 // =========================
@@ -66,6 +71,8 @@ class UserViewModel : ViewModel() {
 
     var photoUrl = mutableStateOf<String?>(null)
         private set
+
+    private val messagesCache = mutableMapOf<String, Int>()
 
     // Returns current user ID or empty if not logged in
     fun getCurrentUserId(): String {
@@ -137,33 +144,6 @@ class UserViewModel : ViewModel() {
             .collection("saved_articles")
             .document(articleId)
             .set(mapOf("id" to articleId))
-    }
-
-    fun saveArticleFull(article: NewsArticle) {
-        val userId = getCurrentUserId()
-
-        val data = mapOf(
-            "id" to article.id,
-            "title" to article.title,
-            "description" to article.description,
-            "imageUrl" to article.imageUrl,
-            "articleUrl" to article.articleUrl,
-            "category" to (article.category ?: ""),
-            "source" to (article.source ?: ""),
-            "publishedDate" to (article.publishedDate ?: "")
-        )
-
-        db.collection("articles")
-            .document(article.id)
-            .set(data)
-
-
-        // Save article in user/saved_articles
-        db.collection("users")
-            .document(userId)
-            .collection("saved_articles")
-            .document(article.id)
-            .set(mapOf("id" to article.id))
     }
 
     // Retrieve saved article IDs
@@ -285,6 +265,21 @@ class UserViewModel : ViewModel() {
                 photoUrl.value = url.toString()
             }
         }
+    }
+
+    // Get user profile for a given user ID
+    fun getUserProfile(userId: String, onResult: (UserPreview) -> Unit) {
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener {
+                val user = UserPreview(
+                    id = userId,
+                    username = it.getString("username") ?: "Unknown",
+                    photoUrl = it.getString("photoUrl") ?: ""
+                )
+                onResult(user)
+            }
     }
 
     // =========================
@@ -468,7 +463,12 @@ class UserViewModel : ViewModel() {
     // =========================
 
     // Listen to messages in real time
-    fun listenMessages(chatId: String, onUpdate: (List<Message>) -> Unit) {
+
+    fun listenMessages(
+        context: Context,
+        chatId: String,
+        onUpdate: (List<Message>) -> Unit
+    ) {
 
         db.collection("chats")
             .document(chatId)
@@ -477,7 +477,9 @@ class UserViewModel : ViewModel() {
             .addSnapshotListener { snapshot, _ ->
 
                 if (snapshot != null) {
+
                     val list = snapshot.map {
+
                         Message(
                             senderId = it.getString("senderId") ?: "",
                             type = it.getString("type") ?: "text",
@@ -485,6 +487,47 @@ class UserViewModel : ViewModel() {
                             articleId = it.getString("articleId")
                         )
                     }
+
+                    val previousSize = messagesCache[chatId] ?: 0
+
+                    // 🔹 Nuevo mensaje detectado
+                    if (list.size > previousSize && list.isNotEmpty()) {
+
+                        val lastMessage = list.last()
+
+                        // 🔹 SOLO si el mensaje NO es mío
+                        if (lastMessage.senderId != getCurrentUserId()) {
+
+                            // 🔹 Check permisos
+                            if (
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.POST_NOTIFICATIONS
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+
+                                db.collection("users")
+                                    .document(lastMessage.senderId)
+                                    .get()
+                                    .addOnSuccessListener { userDoc ->
+
+                                        val senderName =
+                                            userDoc.getString("username")
+                                                ?: "Usuario"
+
+                                        NotificationHelper.showMessageNotification(
+                                            context = context,
+                                            username = senderName,
+                                            message = lastMessage.text
+                                                ?: "Artículo compartido"
+                                        )
+                                    }
+                            }
+                        }
+                    }
+
+                    messagesCache[chatId] = list.size
+
                     onUpdate(list)
                 }
             }

@@ -12,9 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 
-
-// 🔹 DARK THEME (sobrio, no negro puro)
 private val DarkColorScheme = darkColorScheme(
+
     primary = Primary,
     onPrimary = OnPrimary,
 
@@ -28,7 +27,6 @@ private val DarkColorScheme = darkColorScheme(
     outline = Outline
 )
 
-// 🔹 LIGHT THEME (clean, moderno)
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -46,12 +44,12 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun NewscrollTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // ❌ desactivado para mantener identidad visual
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
 
     val colorScheme = when {
-        // 🔴 Eliminamos dynamic color (Material You rompe diseño consistente)
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context)
@@ -62,10 +60,10 @@ fun NewscrollTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
+            MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography, // 👈 importante (lo definiremos luego)
-        shapes = Shapes,            // 👈 consistencia global
+        typography = AppTypography,
+        shapes = Shapes,
         content = content
-    )
-}
+            )
+    }

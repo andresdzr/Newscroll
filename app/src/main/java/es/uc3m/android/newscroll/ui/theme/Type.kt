@@ -7,21 +7,21 @@ import androidx.compose.ui.unit.sp
 
 val AppTypography = Typography(
 
-    // 🔹 TÍTULOS GRANDES (Top bars, headers)
+    // Headers
     titleLarge = TextStyle(
         fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
         letterSpacing = 0.sp
     ),
 
-    // 🔹 TÍTULOS MEDIOS (secciones)
+    // Sections
     titleMedium = TextStyle(
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         letterSpacing = 0.sp
     ),
 
-    // 🔹 TEXTO PRINCIPAL (chat, contenido)
+    // Main text
     bodyLarge = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 15.sp,
@@ -29,15 +29,17 @@ val AppTypography = Typography(
         letterSpacing = 0.sp
     ),
 
-    // 🔹 TEXTO SECUNDARIO (preview, metadata)
+    // Secondary text
     bodyMedium = TextStyle(
         fontWeight = FontWeight.Normal,
+
         fontSize = 14.sp,
         lineHeight = 18.sp,
         letterSpacing = 0.sp
     ),
 
-    // 🔹 LABELS / SMALL TEXT
+
+    //  LABELS
     bodySmall = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 13.sp,

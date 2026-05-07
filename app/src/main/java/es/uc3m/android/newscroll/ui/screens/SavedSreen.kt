@@ -52,7 +52,7 @@ fun SavedScreen(
                         onToggleSaved = {
                             // Optimistic remove + persist to Firebase
                             savedArticles = savedArticles.filter { it.id != article.id }
-                            viewModel.toggleSaved(article, userViewModel)
+                            viewModel.toggleSaved(article.id, userViewModel)
                         }
                     )
                 }

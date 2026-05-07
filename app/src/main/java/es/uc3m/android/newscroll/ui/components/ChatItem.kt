@@ -21,8 +21,6 @@ fun ChatItem(
     onClick: () -> Unit
 ) {
 
-
-
     Surface(
         shape = RoundedCornerShape(16.dp),
         tonalElevation = 1.dp,
