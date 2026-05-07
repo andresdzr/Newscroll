@@ -55,7 +55,7 @@ fun MessagesScreen(
                 .padding(padding)
         ) {
 
-            // HEADER
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

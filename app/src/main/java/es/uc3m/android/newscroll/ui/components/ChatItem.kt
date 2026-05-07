@@ -34,8 +34,6 @@ fun ChatItem(
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            // Photo
             AsyncImage(
                 model = if (photoUrl.isNotEmpty()) photoUrl else "https://via.placeholder.com/150",
                 contentDescription = null,
@@ -47,7 +45,6 @@ fun ChatItem(
 
             Spacer(modifier = Modifier.width(14.dp))
 
-            // Username
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(3.dp)
@@ -61,7 +58,6 @@ fun ChatItem(
 
             }
 
-            // Chat indicator
             Box(
                 modifier = Modifier
                     .size(6.dp)

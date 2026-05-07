@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
-// Enums for location mode and app theme
 enum class LocationMode {
     LOCAL, NATIONAL, GLOBAL
 }
@@ -18,16 +17,11 @@ enum class AppTheme {
 class SettingsViewModel(private val prefs: SharedPreferences) : ViewModel() {
 
     companion object {
-        // Keys used to store values in SharedPreferences
         private const val KEY_FILTERS = "settings_filters"
         private const val KEY_LOCATION_MODE = "settings_location_mode"
         private const val KEY_RADIUS = "settings_radius"
         private const val KEY_THEME = "settings_theme"
     }
-
-    // =========================
-    // THEME SETTINGS
-    // =========================
 
     // Current app theme (persisted)
     private val _appTheme = mutableStateOf(
@@ -43,9 +37,6 @@ class SettingsViewModel(private val prefs: SharedPreferences) : ViewModel() {
         prefs.edit().putString(KEY_THEME, theme.name).apply()
     }
 
-    // =========================
-    // FILTER SETTINGS
-    // =========================
 
     // Default available filters
     private val allFilters = setOf(
@@ -75,10 +66,6 @@ class SettingsViewModel(private val prefs: SharedPreferences) : ViewModel() {
         _selectedFilters.value = newSet
         prefs.edit().putStringSet(KEY_FILTERS, newSet).apply()
     }
-
-    // =========================
-    // LOCATION SETTINGS
-    // =========================
 
     // Selected location mode (persisted)
     private val _locationMode = mutableStateOf(

@@ -19,17 +19,13 @@ fun RegisterScreen(
     userViewModel: UserViewModel,
     onBack: () -> Unit
 ) {
-
-    // Input states
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var repeatPassword by remember { mutableStateOf("") }
 
-    // Password visibility toggles
     var passwordVisible by remember { mutableStateOf(false) }
     var repeatPasswordVisible by remember { mutableStateOf(false) }
 
-    // Local error state
     var error by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     Column(

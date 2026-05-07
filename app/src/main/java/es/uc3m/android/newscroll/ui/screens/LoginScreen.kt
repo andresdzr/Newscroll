@@ -18,14 +18,11 @@ fun LoginScreen(
     userViewModel: UserViewModel,
     onNavigateToRegister: () -> Unit
 ) {
-    // Input states
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Controls password visibility
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Local error state (not handled in ViewModel)
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(

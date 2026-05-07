@@ -33,7 +33,7 @@ fun SavedItem(
 
     val context = LocalContext.current
 
-    // Card container for saved article preview
+    // Saved article preview
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -44,7 +44,7 @@ fun SavedItem(
 
         Box {
 
-            // Background image of the article
+            // Image of the article
             Image(
                 painter = rememberAsyncImagePainter(article.imageUrl),
                 contentDescription = null,

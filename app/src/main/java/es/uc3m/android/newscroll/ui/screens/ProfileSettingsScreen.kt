@@ -22,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 @Composable
 fun ProfileSettingsScreen(userViewModel: UserViewModel) {
 
-    // Check authentication state
     val isLoggedIn = userViewModel.isLoggedIn.value
 
     // Show profile or auth screen depending on login state

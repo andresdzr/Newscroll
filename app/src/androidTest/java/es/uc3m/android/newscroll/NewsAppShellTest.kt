@@ -13,11 +13,13 @@ import androidx.test.rule.GrantPermissionRule
 import org.junit.Rule
 import org.junit.Test
 
+
 class NewsAppShellTest {
     @get:Rule
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.POST_NOTIFICATIONS
     )
 
     @get:Rule
@@ -25,9 +27,10 @@ class NewsAppShellTest {
 
     @Test
     fun appShell_displaysTopBarTitle() {
-        // Assert the title is NEWSCROLL
+        // Assert the title is Newscroll
         composeTestRule
-            .onNodeWithText("NEWSCROLL")
+            .onAllNodesWithText("Newscroll")
+            .onFirst()
             .assertIsDisplayed()
     }
 
@@ -40,12 +43,13 @@ class NewsAppShellTest {
 
         // Assert the title is Newscroll
         composeTestRule
-            .onNodeWithText("Newscroll")
+            .onAllNodesWithText("Newscroll")
+            .onFirst()
             .assertIsDisplayed()
 
         // Asser without signing in messages is not shown
         composeTestRule
-            .onNodeWithText("Mensajes")
+            .onNodeWithText("Messages")
             .assertDoesNotExist()
 
         // Asser without signing saved articles is not shown
@@ -65,15 +69,16 @@ class NewsAppShellTest {
             .performClick()
 
         composeTestRule
-            .onNodeWithText("Correo electrónico")
+            .onNodeWithText("Email")
             .performTextInput("sergio@gmail.com")
 
         composeTestRule
-            .onNodeWithText("Contraseña")
+            .onNodeWithText("Password")
             .performTextInput("sergio")
 
         composeTestRule
-            .onNodeWithText("Iniciar sesión")
+            .onAllNodesWithText("Log in")
+            .onFirst()
             .performClick()
 
         Thread.sleep(5000)
@@ -90,7 +95,7 @@ class NewsAppShellTest {
 
         // Assert messages is now visible
         composeTestRule
-            .onNodeWithText("Mensajes")
+            .onNodeWithText("Messages")
             .assertIsDisplayed()
 
         // Assert saved articles is now visible

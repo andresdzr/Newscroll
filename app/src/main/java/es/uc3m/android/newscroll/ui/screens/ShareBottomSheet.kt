@@ -34,7 +34,6 @@ fun ShareBottomSheet(
     onDismiss: () -> Unit
 ) {
 
-    // Context and clipboard for system actions
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
 

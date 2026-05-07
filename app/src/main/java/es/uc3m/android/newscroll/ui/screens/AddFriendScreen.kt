@@ -23,14 +23,12 @@ import androidx.compose.ui.res.stringResource
 @Composable
 fun AddFriendScreen(userViewModel: UserViewModel) {
 
-    // Current user ID
     val userId = userViewModel.getCurrentUserId()
 
     // Input state and friend requests list
     var userIdInput by remember { mutableStateOf("") }
     var requests by remember { mutableStateOf<List<FriendRequest>>(emptyList()) }
 
-    // Clipboard and context for UI actions
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
 

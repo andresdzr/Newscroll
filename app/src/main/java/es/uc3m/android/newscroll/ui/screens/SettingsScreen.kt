@@ -123,11 +123,8 @@ fun ThemeSection(viewModel: SettingsViewModel) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FiltersSection(viewModel: SettingsViewModel) {
-
-    // Expand/collapse state
     var expanded by remember { mutableStateOf(false) }
 
-    // Selected filters
     val selectedFilters = viewModel.selectedFilters.value
 
     Card(shape = RoundedCornerShape(16.dp)) {
@@ -191,11 +188,8 @@ fun FiltersSection(viewModel: SettingsViewModel) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LocationSection(viewModel: SettingsViewModel) {
-
-    // Expand/collapse state
     var expanded by remember { mutableStateOf(false) }
 
-    // Current location mode and radius
     val selectedMode = viewModel.locationMode.value
     val radius = viewModel.radiusKm.value
 

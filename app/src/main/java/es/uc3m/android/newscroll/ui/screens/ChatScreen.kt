@@ -91,7 +91,7 @@ fun ChatScreen(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        // TOP BAR
+        // Top bar
         TopAppBar(
             windowInsets = WindowInsets(0),
 
@@ -201,7 +201,7 @@ fun ChatScreen(
             }
         }
 
-        // INPUT BAR
+        // Input bar
         Surface(tonalElevation = 3.dp) {
             Row(
                 modifier = Modifier

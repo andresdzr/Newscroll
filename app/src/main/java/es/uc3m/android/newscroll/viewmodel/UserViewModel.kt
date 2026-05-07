@@ -18,9 +18,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 
-// =========================
-// DATA MODELS
-// =========================
 
 // Basic user preview for lists
 data class UserPreview(
@@ -35,7 +32,7 @@ data class FriendRequest(
     val fromUserId: String
 )
 
-// Chat preview model (used in chat list)
+// Chat preview model
 data class ChatPreview(
     val chatId: String,
     val otherUserId: String,
@@ -43,7 +40,7 @@ data class ChatPreview(
     val photoUrl: String
 )
 
-// Message model (text or article)
+// Message model
 data class Message(
     val senderId: String,
     val type: String,
@@ -53,20 +50,16 @@ data class Message(
 
 class UserViewModel : ViewModel() {
 
-    // Firebase services
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
-    // Auth state
     var isLoggedIn = mutableStateOf(auth.currentUser != null)
         private set
 
-    // User email (fallback identifier)
     var username = mutableStateOf(auth.currentUser?.email ?: "")
         private set
 
-    // Profile data
     var displayName = mutableStateOf("")
         private set
 
@@ -75,14 +68,10 @@ class UserViewModel : ViewModel() {
 
     private val messagesCache = mutableMapOf<String, Int>()
 
-    // Returns current user ID or empty if not logged in
     fun getCurrentUserId(): String {
         return auth.currentUser?.uid ?: ""
     }
 
-    // =========================
-    // AUTHENTICATION
-    // =========================
 
     // Login user with email/password
     fun login(email: String, password: String, onError: (String) -> Unit) {
@@ -132,10 +121,6 @@ class UserViewModel : ViewModel() {
         isLoggedIn.value = false
         username.value = ""
     }
-
-    // =========================
-    // SAVED ARTICLES
-    // =========================
 
     // Save article to user collection
     fun saveArticle(articleId: String) {
@@ -255,10 +240,6 @@ class UserViewModel : ViewModel() {
             .delete()
     }
 
-    // =========================
-    // PROFILE
-    // =========================
-
     // Load user profile from Firestore
     fun loadUserProfile() {
         val userId = getCurrentUserId()
@@ -313,10 +294,6 @@ class UserViewModel : ViewModel() {
                 onResult(user)
             }
     }
-
-    // =========================
-    // FRIEND REQUESTS
-    // =========================
 
     // Send friend request to another user
     fun sendFriendRequest(toUserId: String) {
@@ -378,10 +355,6 @@ class UserViewModel : ViewModel() {
             createChatIfNotExists(fromUserId)
         }
     }
-
-    // =========================
-    // CHAT MANAGEMENT
-    // =========================
 
     // Create chat only if it does not already exist
     fun createChatIfNotExists(otherUserId: String) {
@@ -452,10 +425,6 @@ class UserViewModel : ViewModel() {
             }
     }
 
-    // =========================
-    // MESSAGING
-    // =========================
-
     // Send text message
     fun sendTextMessage(chatId: String, text: String) {
         val userId = getCurrentUserId()
@@ -490,12 +459,7 @@ class UserViewModel : ViewModel() {
             )
     }
 
-    // =========================
-    // REAL-TIME LISTENER
-    // =========================
-
     // Listen to messages in real time
-
     fun listenMessages(
         context: Context,
         chatId: String,
@@ -522,15 +486,15 @@ class UserViewModel : ViewModel() {
 
                     val previousSize = messagesCache[chatId] ?: 0
 
-                    // Nuevo mensaje detectado
+                    // New message detected
                     if (list.size > previousSize && list.isNotEmpty()) {
 
                         val lastMessage = list.last()
 
-                        // SOLO si el mensaje NO es mío
+                        // Notification if message is not from current user
                         if (lastMessage.senderId != getCurrentUserId()) {
 
-                            // Check permisos
+                            // Check permissions
                             if (
                                 ContextCompat.checkSelfPermission(
                                     context,

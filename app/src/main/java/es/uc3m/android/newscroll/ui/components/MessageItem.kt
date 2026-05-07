@@ -27,8 +27,8 @@ fun MessageItem(
     message: Message,
     isMe: Boolean,
     article: NewsArticle? = null,
-    isSaved: Boolean = false, // external saved state (Firebase)
-    onToggleSaved: () -> Unit = {} // external action handler
+    isSaved: Boolean = false,
+    onToggleSaved: () -> Unit = {}
 ) {
 
     Row(
@@ -36,13 +36,12 @@ fun MessageItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalArrangement = if (isMe)
-            Arrangement.End // align right for current user
+            Arrangement.End
         else
-            Arrangement.Start // align left for others
+            Arrangement.Start
     ) {
 
         when (message.type) {
-
             // Text message bubble
             "text" -> {
 
@@ -66,7 +65,7 @@ fun MessageItem(
                 }
             }
 
-            // Article preview (same pattern as feed)
+            // Article preview
             "article" -> {
 
                 if (article != null) {
@@ -98,14 +97,13 @@ fun MessageItem(
                                         Brush.verticalGradient(
                                             colors = listOf(
                                                 Color.Transparent,
-                                                Color.Black.copy(alpha = 0.7f)
+                                                Color.Black.copy(alpha = 0.8f)
                                             ),
                                             startY = 200f
                                         )
                                     )
                             )
 
-                            // Bottom content (title + actions)
                             Column(
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)

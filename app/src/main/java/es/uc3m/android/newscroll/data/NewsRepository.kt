@@ -13,6 +13,8 @@ import es.uc3m.android.newscroll.model.NewsArticle
 
 private const val TAG = "NewsRepository"
 
+
+
 object NewsRepository {
 
     private val db = FirebaseFirestore.getInstance()
@@ -22,11 +24,24 @@ object NewsRepository {
         "https://api.pexels.com/"
     )
 
+    private suspend fun getFallbackImageUrl(query: String): String {
+        val apiKey = BuildConfig.PEXELS_API_KEY
+        if (apiKey.isBlank()) return ""
+
+        return try {
+            val response = pexelsService.searchPhotos(apiKey = apiKey, query = query, perPage = 1)
+            response.photos.firstOrNull()?.src?.medium ?: ""
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch fallback image for $query: ${e.message}")
+            ""
+        }
+    }
+
     suspend fun fetchFromApis(filters: Set<String>): List<NewsArticle> {
         Log.d(TAG, "fetchFromApis called with filters: $filters")
         val result = mutableListOf<NewsArticle>()
 
-        // --- HackerNews: Technology, ML & AI ---
+        // HackerNews: Technology, ML & AI
         if (filters.isEmpty() || "Technology, ML & AI" in filters) {
             try {
                 Log.d(TAG, "Fetching HackerNews...")
@@ -41,7 +56,7 @@ object NewsRepository {
                             id = "hn_${hit.id}",
                             title = hit.title!!,
                             description = "By ${hit.author ?: "unknown"} · Hacker News",
-                            imageUrl = "",
+                            imageUrl = getFallbackImageUrl(hit.title),
                             articleUrl = hit.url!!,
                             category = "Technology, ML & AI",
                             publishedDate = hit.createdAt,
@@ -55,7 +70,7 @@ object NewsRepository {
             }
         }
 
-        // --- Guardian: Politics & Geopolitics ---
+        // Guardian: Politics & Geopolitics
         if (filters.isEmpty() || "Politics & Geopolitics" in filters) {
             val key = BuildConfig.GUARDIAN_API_KEY
             if (key.isBlank()) {
@@ -76,7 +91,7 @@ object NewsRepository {
                             id = "guardian_${item.id.replace("/", "_")}",
                             title = item.title,
                             description = item.fields?.trailText ?: item.category,
-                            imageUrl = item.fields?.thumbnail ?: "",
+                            imageUrl = item.fields?.thumbnail ?: getFallbackImageUrl(item.title),
                             articleUrl = item.url,
                             category = "Politics & Geopolitics",
                             publishedDate = item.date,
@@ -91,7 +106,7 @@ object NewsRepository {
             }
         }
 
-        // --- Finnhub: Finance & Investing ---
+        // Finnhub: Finance & Investing
         if (filters.isEmpty() || "Finance & Investing" in filters) {
             val key = BuildConfig.FINNHUB_API_KEY
             if (key.isBlank()) {
@@ -113,7 +128,7 @@ object NewsRepository {
                                 id = "finnhub_${item.id}",
                                 title = item.title,
                                 description = item.summary ?: "Finance & investing news",
-                                imageUrl = item.image?.takeIf { it.isNotBlank() } ?: "",
+                                imageUrl = item.image?.takeIf { it.isNotBlank() } ?: getFallbackImageUrl(item.title),
                                 articleUrl = item.url,
                                 category = "Finance & Investing",
                                 publishedDate = item.timestamp.toString(),
@@ -128,7 +143,7 @@ object NewsRepository {
             }
         }
 
-        // --- RSS: History & Philosophy ---
+        // RSS: History & Philosophy
         if (filters.isEmpty() || "History & Philosophy" in filters) {
             try {
                 Log.d(TAG, "Fetching History & Philosophy RSS...")
@@ -138,7 +153,7 @@ object NewsRepository {
                     source = "Aeon"
                 ).take(15).map { article ->
                     val stableId = "rss_${Math.abs(article.articleUrl.hashCode())}"
-                    article.copy(id = stableId, imageUrl = "")
+                    article.copy(id = stableId, imageUrl = getFallbackImageUrl(article.title))
                 }
                 Log.d(TAG, "History RSS: fetched ${items.size} articles")
                 result.addAll(items)
@@ -147,7 +162,7 @@ object NewsRepository {
             }
         }
 
-        // --- RSS: Survival Knowledge ---
+        // RSS: Survival Knowledge
         if (filters.isEmpty() || "Survival Knowledge" in filters) {
             try {
                 Log.d(TAG, "Fetching Survival Knowledge RSS...")
@@ -157,7 +172,7 @@ object NewsRepository {
                     source = "Art of Manliness"
                 ).take(15).map { article ->
                     val stableId = "rss_${Math.abs(article.articleUrl.hashCode())}"
-                    article.copy(id = stableId, imageUrl = "")
+                    article.copy(id = stableId, imageUrl = getFallbackImageUrl(article.title))
                 }
                 Log.d(TAG, "Survival RSS: fetched ${items.size} articles")
                 result.addAll(items)
@@ -172,7 +187,6 @@ object NewsRepository {
         return result
     }
 
-    // Stores each article as a flat document so saved IDs can be resolved in Phase 3
     private fun storeArticles(articles: List<NewsArticle>) {
         articles.forEach { article ->
             db.collection("articles")

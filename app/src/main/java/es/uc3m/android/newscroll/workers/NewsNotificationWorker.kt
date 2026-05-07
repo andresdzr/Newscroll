@@ -19,8 +19,6 @@ class NewsNotificationWorker(
     override suspend fun doWork(): Result {
 
         return try {
-
-            // Check permiso Android 13+
             if (
                 ContextCompat.checkSelfPermission(
                     applicationContext,

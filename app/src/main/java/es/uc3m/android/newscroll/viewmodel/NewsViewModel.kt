@@ -18,10 +18,6 @@ import kotlinx.coroutines.*
 
 class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
-    // =========================
-    // Articles feed
-    // =========================
-
     private val prefs = application.getSharedPreferences("newscroll_feed_prefs", Context.MODE_PRIVATE)
 
     private val _articles = MutableStateFlow<List<NewsArticle>>(emptyList())
@@ -45,7 +41,7 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         saveSeenIds(seen)
     }
 
-    // Fetch articles, filter unseen, shuffle — replaces current feed (used on launch / filter change)
+    // Fetch articles, filter unseen, shuffle, and replaces current feed (used on launch / filter change)
     fun fetchNews(filters: Set<String>) {
         currentFilters = filters
         viewModelScope.launch {
@@ -67,7 +63,7 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Append next cycle to the end of the feed — used for infinite scroll
+    // Append next cycle to the end of the feed
     fun appendNextCycle() {
         if (_isLoading.value) return
         viewModelScope.launch {
@@ -89,9 +85,6 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // =========================
-    // Saved Articles
-    // =========================
 
     private val _savedArticles = mutableStateOf<Set<String>>(emptySet())
     val savedArticles: State<Set<String>> = _savedArticles
@@ -113,9 +106,6 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // =========================
-    // Location services
-    // =========================
 
     private val locationManager =
         application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -149,9 +139,6 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         locationListener?.let { locationManager.removeUpdates(it) }
     }
 
-    // =========================
-    // Proximity filter
-    // =========================
 
     fun filterNearby(
         articles: List<NewsArticle>,

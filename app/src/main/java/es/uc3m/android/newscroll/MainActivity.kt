@@ -45,13 +45,10 @@ class MainActivity : ComponentActivity() {
 
         FirebaseApp.initializeApp(this)
 
-        // 🔹 Crear canales de notificación
         NotificationHelper.createChannels(this)
 
-        // 🔹 Pedir permisos Android 13+
         requestNotificationPermission()
 
-        // 🔹 Lanzar workers
         scheduleBackgroundFetch()
         scheduleNewsNotifications()
 
@@ -77,7 +74,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // 🔹 Pedir permiso notificaciones
     private fun requestNotificationPermission() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -98,7 +94,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // 🔹 Worker noticias background
     private fun scheduleBackgroundFetch() {
 
         val request =
@@ -115,7 +110,6 @@ class MainActivity : ComponentActivity() {
             )
     }
 
-    // 🔹 Worker notificaciones periódicas
     private fun scheduleNewsNotifications() {
 
         val request =
