@@ -28,6 +28,9 @@ import es.uc3m.android.newscroll.R
 import es.uc3m.android.newscroll.viewmodel.*
 import kotlinx.coroutines.launch
 
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppShell() {

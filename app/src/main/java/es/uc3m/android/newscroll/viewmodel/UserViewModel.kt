@@ -12,7 +12,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 import com.google.firebase.firestore.SetOptions
-
+import android.content.Context
+import es.uc3m.android.newscroll.notifications.NotificationHelper
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 // =========================
 // DATA MODELS
 // =========================
@@ -67,6 +71,8 @@ class UserViewModel : ViewModel() {
 
     var photoUrl = mutableStateOf<String?>(null)
         private set
+
+    private val messagesCache = mutableMapOf<String, Int>()
 
     // Returns current user ID or empty if not logged in
     fun getCurrentUserId(): String {
@@ -457,7 +463,12 @@ class UserViewModel : ViewModel() {
     // =========================
 
     // Listen to messages in real time
-    fun listenMessages(chatId: String, onUpdate: (List<Message>) -> Unit) {
+
+    fun listenMessages(
+        context: Context,
+        chatId: String,
+        onUpdate: (List<Message>) -> Unit
+    ) {
 
         db.collection("chats")
             .document(chatId)
@@ -466,7 +477,9 @@ class UserViewModel : ViewModel() {
             .addSnapshotListener { snapshot, _ ->
 
                 if (snapshot != null) {
+
                     val list = snapshot.map {
+
                         Message(
                             senderId = it.getString("senderId") ?: "",
                             type = it.getString("type") ?: "text",
@@ -474,6 +487,47 @@ class UserViewModel : ViewModel() {
                             articleId = it.getString("articleId")
                         )
                     }
+
+                    val previousSize = messagesCache[chatId] ?: 0
+
+                    // 🔹 Nuevo mensaje detectado
+                    if (list.size > previousSize && list.isNotEmpty()) {
+
+                        val lastMessage = list.last()
+
+                        // 🔹 SOLO si el mensaje NO es mío
+                        if (lastMessage.senderId != getCurrentUserId()) {
+
+                            // 🔹 Check permisos
+                            if (
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.POST_NOTIFICATIONS
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+
+                                db.collection("users")
+                                    .document(lastMessage.senderId)
+                                    .get()
+                                    .addOnSuccessListener { userDoc ->
+
+                                        val senderName =
+                                            userDoc.getString("username")
+                                                ?: "Usuario"
+
+                                        NotificationHelper.showMessageNotification(
+                                            context = context,
+                                            username = senderName,
+                                            message = lastMessage.text
+                                                ?: "Artículo compartido"
+                                        )
+                                    }
+                            }
+                        }
+                    }
+
+                    messagesCache[chatId] = list.size
+
                     onUpdate(list)
                 }
             }

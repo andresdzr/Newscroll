@@ -22,6 +22,8 @@ import es.uc3m.android.newscroll.ui.components.MessageItem
 import es.uc3m.android.newscroll.R
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
@@ -38,10 +40,14 @@ fun ChatScreen(
     var input by remember { mutableStateOf("") }
 
     val listState = rememberLazyListState()
+    val context = LocalContext.current
 
     // Listen messages
     LaunchedEffect(chatId) {
-        userViewModel.listenMessages(chatId) {
+        userViewModel.listenMessages(
+            context,
+            chatId
+        ) {
             messages = it
         }
     }
