@@ -10,52 +10,40 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.Color
 
-
-// 🔹 DARK THEME (sobrio, no negro puro)
 private val DarkColorScheme = darkColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-
-    background = Color(0xFF0F0F10),
-    surface = Color(0xFF1C1C1E),
-
-    onSurface = Color.White,
-    onSurfaceVariant = Color(0xFF9CA3AF),
-
-    secondary = Secondary,
-    outline = Outline
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
 )
 
-// 🔹 LIGHT THEME (clean, moderno)
 private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
 
-    background = Background,
-    surface = Surface,
-
-    onSurface = OnSurface,
-    onSurfaceVariant = OnSurfaceVariant,
-
-    secondary = Secondary,
-    outline = Outline
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
 )
 
 @Composable
 fun NewscrollTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // ❌ desactivado para mantener identidad visual
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-
     val colorScheme = when {
-        // 🔴 Eliminamos dynamic color (Material You rompe diseño consistente)
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
-            else dynamicLightColorScheme(context)
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
         darkTheme -> DarkColorScheme
@@ -64,8 +52,7 @@ fun NewscrollTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography, // 👈 importante (lo definiremos luego)
-        shapes = Shapes,            // 👈 consistencia global
+        typography = Typography,
         content = content
     )
 }

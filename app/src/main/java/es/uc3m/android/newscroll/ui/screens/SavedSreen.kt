@@ -50,7 +50,6 @@ fun SavedScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(savedArticles) { article ->
-
                     SavedItem(
                         article = article,
                         onToggleSaved = {

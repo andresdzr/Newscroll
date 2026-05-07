@@ -2,17 +2,19 @@ package es.uc3m.android.newscroll.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun ChatItem(
@@ -21,57 +23,54 @@ fun ChatItem(
     onClick: () -> Unit
 ) {
 
+    // Custom interaction to remove default ripple effect
+    val interactionSource = remember { MutableInteractionSource() }
 
-
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 1.dp,
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clip(MaterialTheme.shapes.medium) // improves touch feedback
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // removes default ripple
+                onClick = onClick
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
 
-        Row(
+        // Avatar image (fallback if empty)
+        AsyncImage(
+            model = if (photoUrl.isNotEmpty()) photoUrl else "https://via.placeholder.com/150",
+            contentDescription = null,
             modifier = Modifier
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .size(48.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        // Username and optional secondary info
+        Column(
+            modifier = Modifier.weight(1f)
         ) {
 
-            // Photo
-            AsyncImage(
-                model = if (photoUrl.isNotEmpty()) photoUrl else "https://via.placeholder.com/150",
-                contentDescription = null,
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+            Text(
+                text = username,
+                style = MaterialTheme.typography.bodyLarge
             )
 
-            Spacer(modifier = Modifier.width(14.dp))
-
-            // Username
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-
-                Text(
-                    text = username,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-
-            }
-
-            // Chat indicator
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                    )
-            )
+            // Placeholder for future message preview
+            // Text("Last message...", style = MaterialTheme.typography.bodySmall)
         }
+
+        // Small visual indicator (e.g., online or active)
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+        )
     }
 }

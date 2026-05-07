@@ -10,8 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 import com.google.firebase.firestore.SetOptions
-import es.uc3m.android.newscroll.model.NewsArticle
-import android.util.Log
+
 // =========================
 // DATA MODELS
 // =========================
@@ -137,33 +136,6 @@ class UserViewModel : ViewModel() {
             .collection("saved_articles")
             .document(articleId)
             .set(mapOf("id" to articleId))
-    }
-
-    fun saveArticleFull(article: NewsArticle) {
-        val userId = getCurrentUserId()
-
-        val data = mapOf(
-            "id" to article.id,
-            "title" to article.title,
-            "description" to article.description,
-            "imageUrl" to article.imageUrl,
-            "articleUrl" to article.articleUrl,
-            "category" to (article.category ?: ""),
-            "source" to (article.source ?: ""),
-            "publishedDate" to (article.publishedDate ?: "")
-        )
-
-        db.collection("articles")
-            .document(article.id)
-            .set(data)
-
-
-        // Save article in user/saved_articles
-        db.collection("users")
-            .document(userId)
-            .collection("saved_articles")
-            .document(article.id)
-            .set(mapOf("id" to article.id))
     }
 
     // Retrieve saved article IDs
