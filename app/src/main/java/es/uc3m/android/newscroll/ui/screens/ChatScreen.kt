@@ -3,59 +3,68 @@ package es.uc3m.android.newscroll.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import es.uc3m.android.newscroll.viewmodel.NewsViewModel
 import es.uc3m.android.newscroll.viewmodel.UserViewModel
 import es.uc3m.android.newscroll.viewmodel.Message
 import es.uc3m.android.newscroll.ui.components.MessageItem
-import androidx.compose.ui.res.painterResource
 import es.uc3m.android.newscroll.R
-import coil.compose.AsyncImage
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.layout.ContentScale
-
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.font.FontWeight
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     userViewModel: UserViewModel,
     newsViewModel: NewsViewModel,
-    chatId: String
+    chatId: String,
+    navController: NavHostController
 ) {
     val feedArticles by newsViewModel.articles.collectAsState()
 
-    // Current logged user ID
     val currentUserId = userViewModel.getCurrentUserId()
 
-    // Messages state and input text
     var messages by remember { mutableStateOf<List<Message>>(emptyList()) }
     var input by remember { mutableStateOf("") }
 
-    // Listen to messages in real time
+    val listState = rememberLazyListState()
+
+    // Listen messages
     LaunchedEffect(chatId) {
         userViewModel.listenMessages(chatId) {
             messages = it
         }
     }
 
-    // Chat user info (name + profile image)
+    // Scroll to last message
+    LaunchedEffect(messages) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+        }
+    }
+
+    // Info user
     var chatUserName by remember { mutableStateOf("") }
     var chatPhotoUrl by remember { mutableStateOf("") }
 
     LaunchedEffect(chatId) {
-        userViewModel.getChats { chats ->
-            val chat = chats.find { it.chatId == chatId }
-            if (chat != null) {
-                chatUserName = chat.username
-                chatPhotoUrl = chat.photoUrl
-            }
+        userViewModel.getUserProfile(chatId) { userPreview ->
+            chatUserName = userPreview.username
+            chatPhotoUrl = userPreview.photoUrl
         }
     }
 
-    // Saved articles (used for like state)
+    // Saved articles
     var savedArticles by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -68,58 +77,75 @@ fun ChatScreen(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        // Top bar with chat info
-        Surface(
-            tonalElevation = 2.dp
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        // TOP BAR
+        TopAppBar(
+            windowInsets = WindowInsets(0),
 
-                // User avatar
-                AsyncImage(
-                    model = if (chatPhotoUrl.isNotEmpty()) chatPhotoUrl else "https://via.placeholder.com/150",
-                    contentDescription = null,
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    AsyncImage(
+                        model = if (chatPhotoUrl.isNotEmpty()) chatPhotoUrl else "https://via.placeholder.com/150",
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp) // 🔹 más grande
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Text(
+                        text = if (chatUserName.isNotEmpty()) chatUserName else "Loading...",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                }
+            },
+
+            navigationIcon = {
+                Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .padding(start = 8.dp)
+                        .size(40.dp)
                         .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Username
-                Text(
-                    text = if (chatUserName.isNotEmpty()) chatUserName else "Loading...",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_back),
+                            contentDescription = "Back"
+                        )
+                    }
+                }
             }
-        }
+        )
 
-        // Messages list
+        // Messages
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
 
             items(messages) { msg ->
 
-                // Check if message is from current user
                 val isMe = msg.senderId == currentUserId
 
-                // Resolve article if message contains one
                 val article = if (msg.articleId != null) {
                     feedArticles.find { it.id == msg.articleId }
                 } else null
 
-                // Check if article is saved
                 val isSaved = article?.id in savedArticles
 
                 MessageItem(
@@ -128,16 +154,15 @@ fun ChatScreen(
                     article = article,
                     isSaved = isSaved,
                     onToggleSaved = {
-                        article?.let {
+                        if (article != null) {
                             if (isSaved) {
-                                userViewModel.removeArticle(it.id)
+                                userViewModel.removeArticle(article.id)
                             } else {
-                                userViewModel.saveArticle(it.id)
+                                userViewModel.saveArticle(article.id)
                             }
 
-                            // Refresh saved articles state
-                            userViewModel.getSavedArticles {
-                                savedArticles = it
+                            userViewModel.getSavedArticles { newSavedArticles ->
+                                savedArticles = newSavedArticles
                             }
                         }
                     }
@@ -145,29 +170,24 @@ fun ChatScreen(
             }
         }
 
-        // Input area for sending messages
-        Surface(
-            tonalElevation = 3.dp
-        ) {
+        // INPUT BAR
+        Surface(tonalElevation = 3.dp) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Message input field
                 OutlinedTextField(
                     value = input,
                     onValueChange = { input = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Type a message...") },
-                    shape = MaterialTheme.shapes.large
+                    placeholder = { Text("Escribe un mensaje") },
+                    modifier = Modifier.weight(1f)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Send message button
                 IconButton(
                     onClick = {
                         if (input.isNotBlank()) {
@@ -176,10 +196,7 @@ fun ChatScreen(
                         }
                     }
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_send),
-                        contentDescription = "Send"
-                    )
+                    Icon(painterResource(id = R.drawable.ic_send), contentDescription = "Send")
                 }
             }
         }

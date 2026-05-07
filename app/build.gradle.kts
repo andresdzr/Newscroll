@@ -67,7 +67,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material3)
     implementation(libs.accompanist.flowlayout)
-    implementation(libs.accompanist.flowlayout.v0340)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

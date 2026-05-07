@@ -1,5 +1,7 @@
 package es.uc3m.android.newscroll.viewmodel
 
+import android.util.Log
+import es.uc3m.android.newscroll.model.NewsArticle
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -257,6 +259,21 @@ class UserViewModel : ViewModel() {
                 photoUrl.value = url.toString()
             }
         }
+    }
+
+    // Get user profile for a given user ID
+    fun getUserProfile(userId: String, onResult: (UserPreview) -> Unit) {
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener {
+                val user = UserPreview(
+                    id = userId,
+                    username = it.getString("username") ?: "Unknown",
+                    photoUrl = it.getString("photoUrl") ?: ""
+                )
+                onResult(user)
+            }
     }
 
     // =========================
